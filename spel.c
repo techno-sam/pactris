@@ -19,17 +19,11 @@
 #include <ncurses.h>
 
 #include "kleuren.h"
-#include "subspel.h"
 #include "pacman.h"
 
 typedef struct {
-    subspel spel;
-    WINDOW *win;
-} spel_data;
-
-typedef struct {
-    int n_spellen;
-    spel_data *spellen;
+    pacman *pm_data;
+    WINDOW *pm_win;
 } spel;
 
 WINDOW *centered_window(int hoogte, int breedte) {
@@ -38,76 +32,117 @@ WINDOW *centered_window(int hoogte, int breedte) {
     return newwin(hoogte, breedte, y0, x0);
 }
 
-spel maak_spel(void) {
-    int n = 1;
-    spel_data *spellen = malloc(n * sizeof(spel_data));
-
-    int win_x, win_y;
-    subspel pacman = pacman_maak_subspel(&win_x, &win_y);
-    spel_data pacman_data = {
-        .spel = pacman,
-        .win = centered_window(win_y, win_x),
-    };
-    spellen[0] = pacman_data;
-
-    spel spel = {
-        .n_spellen = n,
-        .spellen = spellen,
-    };
-
-    return spel;
-}
-
-void speel(void) {
-    spel spel = maak_spel();
-
-    for (int i = 0; i < spel.n_spellen; i++) {
-        spel_data *sub = &spel.spellen[i];
-        sub->spel.init(sub->win, sub->spel.data);
+spel *maak_spel(rooster *pacman_veld) {
+    spel *sp = malloc(sizeof(spel));
+    if (sp == NULL) {
+        perror("maak_spel");
+        return NULL;
     }
 
-    while (1) {
+    int hoogte, breedte;
+    sp->pm_data = pm_maak(pacman_veld, &hoogte, &breedte);
+
+    if (sp->pm_data == NULL) {
+        free(sp);
+        return NULL;
+    }
+
+    sp->pm_win = centered_window(hoogte, breedte);
+
+    return sp;
+}
+
+void teken_spel(spel *sp) {
+    pm_teken(sp->pm_win, sp->pm_data);
+
+    wnoutrefresh(sp->pm_win);
+    doupdate();
+}
+
+void speel(spel *sp) {
+    teken_spel(sp);
+
+    clock_t pm_laatste_stap = clock();
+
+    int speel = 1;
+    while (speel) {
+        // 1. toetsen
         int toets = getch();
         if (toets != ERR) {
-            for (int i = 0; i < spel.n_spellen; i++) {
-                spel_data *sub = &spel.spellen[i];
-                if (sub->spel.toets(sub->win, toets, sub->spel.data)) {
-                    break;
+            int gebruikt = pm_toets(toets, sp->pm_data);
+
+            if (!gebruikt) {
+                switch (toets) {
+                    case 27: // ESC
+                        speel = 0;
+                        break;
                 }
             }
         }
 
-        for (int i = 0; i < spel.n_spellen; i++) {
-            spel_data *sub = &spel.spellen[i];
-            sub->spel.teken(sub->win, TEKEN_VERS, sub->spel.data);
-            wrefresh(sub->win);
+        // 2. stap, 5 Hz
+        clock_t nu = clock();
+        clock_t delta = nu - pm_laatste_stap;
+        if (delta > CLOCKS_PER_SEC / 5) {
+            pm_laatste_stap = nu;
+            speel &= pm_stap(sp->pm_data);
         }
-    refresh();
-    }
 
-    for (int i = 0; i < spel.n_spellen; i++) {
-        spel_data *sub = &spel.spellen[i];
-        sub->spel.klaar(sub->spel.data);
-        wborder(sub->win, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ');
-        wrefresh(sub->win);
-        delwin(sub->win);
+        // 3. teken
+        teken_spel(sp);
     }
 }
 
-int main(void) {
-    // Initialiseer ncurses
+void spel_klaar(spel *sp) {
+    pm_klaar(sp->pm_data);
+    delwin(sp->pm_win);
+    free(sp);
+}
+
+int main(int argc, char *argv[]) {
+    // 1. Controleer dat er een pacmanbestand is opgegeven op de command line.
+    if (argc != 2) {
+        fprintf(stderr, "gebruik: ./spel assets/pacman.txt\n");
+        return 1;
+    }
+
+    // 2. Open het pacmanbestand en lees het rooster.
+    FILE *fh = fopen(argv[1], "r");
+    if (fh == NULL) {
+        perror("main");
+        return 1;
+    }
+    rooster *pacman_veld = rooster_lees(fh);
+    fclose(fh);
+
+    // 3. Bepaal of het lezen van het rooster is gelukt.
+    if (pacman_veld == NULL) {
+        fprintf(stderr, "Kan rooster niet maken.\n");
+        return 1;
+    }
+
+    // 4. Initialiseer ncurses
     initscr();
     cbreak();              // zodat je kunt onderbreken met Ctrl+C
     keypad(stdscr, TRUE);  // luister ook naar extra toetsen zoals pijltjes
     noecho();              // druk niet de letters af die je intypt
     nodelay(stdscr, TRUE); // getch wacht niet
     curs_set(0);           // verberg de cursor
-
     init_kleuren();
 
-    speel();
+    // 5. Maak het spel
+    spel *spel = maak_spel(pacman_veld);
+    if (spel == NULL) {
+        fprintf(stderr, "Kan spel niet maken.\n");
+        return 1;
+    }
 
+    // 6. Speel het spel.
+    speel(spel);
+
+    // 7. Sluit af.
     getch(); // handig voor debugging
+    spel_klaar(spel);
     endwin();
     return 0;
 }
