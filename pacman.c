@@ -13,6 +13,8 @@
 
 #define ALLE_RICHTINGEN(var) (richting var = RECHTS; var <= OMHOOG; var++)
 #define SPIEGEL_RICHTING(rot) (rot == GEEN ? GEEN : (rot + 2) % 4)
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
 
 // data tabellen, geïndexeerd met een richting
 const int  DX[]         = {   1,   0,  -1,   0 };
@@ -194,7 +196,7 @@ int zoek_plaats(rooster *veld, char c, entity *ent, richting rot) {
  * Uitvoer: 1 als het vakje bewandelbaar is, anders 0
  */
 int bewandelbaar(char c) {
-    return c == ' ' || c == '.';
+    return c == ' ' || c == '.' || c == '*';
 }
 
 /****************/
@@ -415,8 +417,8 @@ void speler_eet_spoken(pacman *data) {
     for (; gegeten > 0; gegeten--) {
         data->n_gegeten_spoken++;
 
-        // 100 * 2^n_gegeten_spoken, dus 200, 400, 800, 1600, etc
-        data->spook_punten += 100 * (1 << data->n_gegeten_spoken);
+        // 100 * 2^n_gegeten_spoken, dus 200, 400, 800, 1600
+        data->spook_punten += 100 * (1 << MIN(data->n_gegeten_spoken, 4));
     }
 }
 
@@ -441,14 +443,19 @@ void stap_speler(pacman *data) {
     // pacman loopt ~2x zo snel als de spoken
     if (data->stappen % 5 == 0) {
         char c = entity_loop(data->veld, &data->speler);
-        if (c == '.') {
-            rooster_plaats(data->veld, data->speler.x, data->speler.y, ' ');
-            data->gegeten_voedsel++;
-            verminder_huis_arrest(data);
-
-            if (data->gegeten_voedsel % 50 == 0) {
-                data->bang_stappen = PM_BANG_STAPPEN;
-            }
+        switch (c) {
+            case '.':
+                rooster_plaats(data->veld, data->speler.x, data->speler.y, ' ');
+                data->gegeten_voedsel++;
+                verminder_huis_arrest(data);
+                break;
+            case '*':
+                rooster_plaats(data->veld, data->speler.x, data->speler.y, ' ');
+                data->bang_stappen += PM_BANG_STAPPEN;
+                if (data->bang_stappen > PM_MAX_BANG_STAPPEN) {
+                    data->bang_stappen = PM_MAX_BANG_STAPPEN;
+                }
+                break;
         }
     }
 

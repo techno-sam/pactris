@@ -15,8 +15,10 @@
 // levens aan het begin van het spel
 #define PM_BEGIN_LEVENS 3
 // hoe lang knipperen de spoken aan het einde van de bangperiode
-#define PM_BANG_WAARSCHUWING (2*PM_HERTZ)
-// hoe lang worden spoken bang
-#define PM_BANG_STAPPEN (10*PM_HERTZ)
+#define PM_BANG_WAARSCHUWING (2 * PM_HERTZ)
+// hoe lang worden spoken bang per gegeten supervoedsel
+#define PM_BANG_STAPPEN (8 * PM_HERTZ)
+// maximum hoeveelheid tijd dat spoken bang kunnen zijn
+#define PM_MAX_BANG_STAPPEN (16 * PM_HERTZ)
 
 #endif

@@ -26,6 +26,14 @@ typedef struct pacman_data pacman;
 pacman *pm_maak(rooster *veld, int *hoogte, int *breedte);
 
 
+/* Geef alle resources vrij die zijn gealloceerd voor een pacmanspel.
+ * De spelpointer is na aanroep van deze functie niet meer bruikbaar.
+ *
+ * data: een pointer naar de speldata
+ */
+void pm_klaar(pacman *data);
+
+
 /* Reageer op een gedrukte toets
  *
  * toets: de toets die gedrukt is
@@ -60,13 +68,5 @@ int pm_stap(pacman *data);
  * - tekst wordt naar het venster geschreven
  */
 void pm_teken(WINDOW *win, const pacman *data);
-
-
-/* Geef alle resources vrij die zijn gealloceerd voor een pacmanspel.
- * De spelpointer is na aanroep van deze functie niet meer bruikbaar.
- *
- * data: een pointer naar de speldata
- */
-void pm_klaar(pacman *data);
 
 #endif
