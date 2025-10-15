@@ -1,4 +1,7 @@
-/** TODO: HEADER COMMENT */
+/* kleuren.h
+ *
+ * Deze module verzorgt de registratie van alle gebruikte kleuren.
+ */
 
 #ifndef _KLEUREN_H
 #define _KLEUREN_H
@@ -28,10 +31,32 @@ typedef enum {
     CK_PM_VENSTER = 19
 } custom_kleur;
 
+/* Registreer alle nodige kleuren
+ *
+ * Side effects:
+ * - een aantal rgb waardes worden aangepast
+ * - COLOR_PAIRs worden gemaakt voor alle kleuren
+ */
 void init_kleuren(void);
 
+/* Zet een tekstkleur in een venster aan
+ * 
+ * win: het venster om aam te passen
+ * kleur: de kleur
+ *
+ * Side effects:
+ * - de tekstkleur van het venster wordt aangezet
+ */
 void wkleur_aan(WINDOW *win, kleur kleur);
 
+/* Zet een tekstkleur in een venster uit
+ * 
+ * win: het venster om aam te passen
+ * kleur: de kleur
+ *
+ * Side effects:
+ * - de tekstkleur van het venster wordt uitgezet
+ */
 void wkleur_uit(WINDOW *win, kleur kleur);
 
 #endif

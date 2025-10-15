@@ -4,7 +4,10 @@
  * Studie: BSc Informatica
  *
  * spel.c
- * - Lorem Ipsum
+ * - roep aan met een bestand wat een rechthoekige doolhof heeft
+ *   `./spel assets/pacman.txt`
+ * - een combinatie van Pacman en Tetris
+ * - de speler kan 8 seconden lang spoken eten na een rij te verwijderen in Tetris
  */
 
 // om `nanosleep` beschikbaar te maken

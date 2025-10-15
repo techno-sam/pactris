@@ -1,4 +1,17 @@
-/* TODO: HEADER COMMENT */
+/* pacman.h
+ *
+ * Deze module bevat alle spellogica van Pacman.
+ * Een pacmanspel bestaat uit een rooster (zie rooster.h),
+ * een speler, en vier spoken.
+ *
+ * De spoken hebben allemaal verschillend doelgedrag:
+ * Blinky: volgt de speler
+ * Pinky: probeert vier vakjes voor de speler te komen
+ * Inky: loopt van de speler weg als Blinky ver van de speler is,
+ *       anders volgt ie de speler
+ * Clyde: loopt naar de linkeronderhoek als de speler binnen 8 stappen,
+ *        anders volgt ie de speler
+ */
 
 #ifndef _PACMAN_H
 #define _PACMAN_H
