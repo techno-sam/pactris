@@ -20,6 +20,7 @@
 
 #include "kleuren.h"
 #include "pacman.h"
+#include "config.h"
 
 typedef struct {
     pacman *pm_data;
@@ -99,7 +100,7 @@ void speel(spel *sp) {
         // 2. stap, 25 Hz
         clock_t nu = clock();
         clock_t delta = nu - pm_laatste_stap;
-        if (delta > CLOCKS_PER_SEC / 25) {
+        if (delta > CLOCKS_PER_SEC / PM_HERTZ) {
             pm_laatste_stap = nu;
             speel &= pm_stap(sp->pm_data);
         }

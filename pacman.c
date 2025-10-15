@@ -2,12 +2,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
+#include <time.h>
 
 #include "pacman.h"
 #include "kleuren.h"
 #include "rooster.h"
+#include "config.h"
 
-#define MAX_LEVENS 3
 #define SCORE_HOOGTE 3
 
 #define ALLE_RICHTINGEN(var) (richting var = RECHTS; var <= OMHOOG; var++)
@@ -60,10 +61,13 @@ struct pacman_data {
     int stappen;
 
     int levens;
+    int spook_punten;
     int begin_voedsel;
     int gegeten_voedsel;
 
     int dood_animatie;
+    int bang_stappen;
+    int n_gegeten_spoken; // aantal gegeten spoken in de huidige bang periode
 
     originele_plaatsen start;
 
@@ -338,7 +342,13 @@ void stap_spook(const pacman *data, spook *spook) {
 
     // vind een doel
     int doel_x, doel_y;
-    spook->doel(data, &doel_x, &doel_y);
+    if (data->bang_stappen > 0) {
+        // ren weg
+        doel_x = 2 * spook->ent.x - data->speler.x;
+        doel_y = 2 * spook->ent.y - data->speler.y;
+    } else {
+        spook->doel(data, &doel_x, &doel_y);
+    }
 
     // welke richting moeten we in om bij onze doel te komen?
     int beste_score = -1;
@@ -368,6 +378,48 @@ void stap_spook(const pacman *data, spook *spook) {
     entity_loop(data->veld, &spook->ent);
 }
 
+/* Probeer een spook te eten
+ *
+ * speler: de speler
+ * begin_spook: de positie & richting om het spook op te zetten als het gegeten is
+ * spook: het spook om op te eten
+ *
+ * Uitvoer: 1 als het spook is gegeten, anders 0
+ *
+ * Side effects:
+ * - het spook kan van plaats en richting veranderen
+ */
+int speler_eet_spook(const entity *speler, const entity *begin_spook, spook *spook) {
+    if (speler->x == spook->ent.x && speler->y == spook->ent.y) {
+        spook->ent = *begin_spook;
+        spook->huis_arrest = 15;
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+/* Probeer alle spoken op te eten
+ *
+ * data: de speldata
+ *
+ * Side effects:
+ * - spoken kunnen van plaats en richting veranderen
+ */
+void speler_eet_spoken(pacman *data) {
+    int gegeten = speler_eet_spook(&data->speler, &data->start.blinky, &data->blinky) +
+                  speler_eet_spook(&data->speler, &data->start.pinky, &data->pinky) +
+                  speler_eet_spook(&data->speler, &data->start.inky, &data->inky) +
+                  speler_eet_spook(&data->speler, &data->start.clyde, &data->clyde);
+
+    for (; gegeten > 0; gegeten--) {
+        data->n_gegeten_spoken++;
+
+        // 100 * 2^n_gegeten_spoken, dus 200, 400, 800, 1600, etc
+        data->spook_punten += 100 * (1 << data->n_gegeten_spoken);
+    }
+}
+
 /* Simuleer een stap van een speler
  *
  * data: de speldata
@@ -379,7 +431,12 @@ void stap_spook(const pacman *data, spook *spook) {
 void stap_speler(pacman *data) {
     // zodat pacman niet door een spook heen kan lopen
     // (`>@` -> `@>` zou anders mogelijk zijn)
-    int gegeten = is_gegeten_alle_spoken(data);
+    int gegeten = 0;
+    if (data->bang_stappen > 0) {
+        speler_eet_spoken(data);
+    } else {
+        gegeten = is_gegeten_alle_spoken(data);
+    }
 
     // pacman loopt ~2x zo snel als de spoken
     if (data->stappen % 5 == 0) {
@@ -388,10 +445,16 @@ void stap_speler(pacman *data) {
             rooster_plaats(data->veld, data->speler.x, data->speler.y, ' ');
             data->gegeten_voedsel++;
             verminder_huis_arrest(data);
+
+            if (data->gegeten_voedsel % 50 == 0) {
+                data->bang_stappen = PM_BANG_STAPPEN;
+            }
         }
     }
 
-    if (gegeten || is_gegeten_alle_spoken(data)) {
+    if (data->bang_stappen > 0) {
+        speler_eet_spoken(data);
+    } else if (gegeten || is_gegeten_alle_spoken(data)) {
         data->dood_animatie = 12;
         data->levens--;
     }
@@ -410,7 +473,7 @@ void stap_speler(pacman *data) {
  * - tekst wordt naar het venster geschreven
  */
 void teken_score(WINDOW *win, const pacman *data) {
-    mvwprintw(win, 1, 1, "Score: %d / %d", data->gegeten_voedsel, data->begin_voedsel);
+    mvwprintw(win, 1, 1, "Score: %d", data->gegeten_voedsel + data->spook_punten);
 
     // levens/hartjes
     wkleur_aan(win, K_HARTJE);
@@ -419,7 +482,7 @@ void teken_score(WINDOW *win, const pacman *data) {
     }
     wkleur_uit(win, K_HARTJE);
     wkleur_aan(win, K_HARTJE_DOOD);
-    for (int i = data->levens; i < MAX_LEVENS; i++) {
+    for (int i = data->levens; i < PM_MAX_LEVENS; i++) {
         mvwprintw(win, 1, data->breedte - 2 - 3*i, "<3");
     }
     wkleur_uit(win, K_HARTJE_DOOD);
@@ -473,16 +536,27 @@ void teken_rooster(WINDOW *win, const rooster *rp) {
  *
  * win: het venster om op te tekenen
  * spook: het spook om te tekenen
+ * bang_stappen: hoeveel langer is het spook bang
  *
  * Side effects:
  * - tekst wordt naar het venster geschreven
  */
-void teken_spook(WINDOW *win, const spook *spook) {
+void teken_spook(WINDOW *win, const spook *spook, const int bang_stappen) {
+    kleur kleur = spook->kleur;
+
+    if (bang_stappen > 0) {
+        kleur = K_BANG;
+
+        if (bang_stappen < PM_BANG_WAARSCHUWING && (bang_stappen / 5) % 2 == 0) {
+            kleur = K_BANG_ALT;
+        }
+    }
+
     mvwaddch(
         win,
         spook->ent.y + 1 + SCORE_HOOGTE,
         spook->ent.x + 1,
-        '@' | COLOR_PAIR(spook->kleur)
+        '@' | COLOR_PAIR(kleur)
     );
 }
 
@@ -502,8 +576,11 @@ pacman *pm_maak(rooster *veld, int *hoogte, int *breedte) {
 
     // 2. Zet een aantal tellers op hun beginwaardes
     data->stappen = 0;
-    data->levens = MAX_LEVENS;
+    data->levens = PM_BEGIN_LEVENS;
+    data->spook_punten = 0;
+    data->n_gegeten_spoken = 0;
     data->dood_animatie = -1;
+    data->bang_stappen = -1;
     data->doel_rot = GEEN;
 
     // 3. Vul het veld met voedsel
@@ -585,6 +662,20 @@ int pm_toets(int toets, pacman *data) {
 }
 
 int pm_stap(pacman *data) {
+    if (data->bang_stappen == 0) {
+        data->n_gegeten_spoken = 0;
+    }
+
+    if (data->bang_stappen >= 0) {
+        if (can_change_color()) {
+            int t = data->bang_stappen >= PM_BANG_STAPPEN ? 0 
+                : (PM_BANG_STAPPEN - data->bang_stappen) * 1000 / PM_BANG_STAPPEN;
+            init_color(CK_PM_VENSTER, t, 1000, t);
+        }
+
+        data->bang_stappen--;
+    }
+
     if (data->dood_animatie >= 0) {
         if (data->stappen % 5 == 0) {
             if (data->dood_animatie == 0) {
@@ -619,10 +710,14 @@ int pm_stap(pacman *data) {
 void pm_teken(WINDOW *win, const pacman *data) {
     if (data->dood_animatie % 2 == 0) {
         wkleur_aan(win, K_HARTJE);
+    } else {
+        wkleur_aan(win, K_PM_VENSTER);
     }
     box(win, 0, 0);
     if (data->dood_animatie % 2 == 0) {
         wkleur_uit(win, K_HARTJE);
+    } else {
+        wkleur_uit(win, K_PM_VENSTER);
     }
 
     teken_score(win, data);
@@ -636,8 +731,8 @@ void pm_teken(WINDOW *win, const pacman *data) {
         speler_chars[data->speler.rot] | COLOR_PAIR(K_PACMAN) | A_BOLD
     );
 
-    teken_spook(win, &data->blinky);
-    teken_spook(win, &data->pinky);
-    teken_spook(win, &data->inky);
-    teken_spook(win, &data->clyde);
+    teken_spook(win, &data->blinky, data->bang_stappen);
+    teken_spook(win, &data->pinky, data->bang_stappen);
+    teken_spook(win, &data->inky, data->bang_stappen);
+    teken_spook(win, &data->clyde, data->bang_stappen);
 }

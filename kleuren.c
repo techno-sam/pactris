@@ -11,14 +11,17 @@ void init_kleuren(void) {
     if (can_change_color()) {
         init_color(COLOR_YELLOW, 1000, 1000, 0);
         init_color(COLOR_WHITE, 1000, 1000, 1000);
-        init_color(17, 1000, 725, 875);
-        init_color(18, 1000, 725, 271);
+        init_color(CK_PINKY, 1000, 725, 875);
+        init_color(CK_CLYDE, 1000, 725, 271);
+        init_color(CK_PM_VENSTER, 1000, 1000, 1000);
 
-        init_pair(K_PINKY, 17, COLOR_BLACK);
-        init_pair(K_CLYDE, 18, COLOR_BLACK);
+        init_pair(K_PINKY, CK_PINKY, COLOR_BLACK);
+        init_pair(K_CLYDE, CK_CLYDE, COLOR_BLACK);
+        init_pair(K_PM_VENSTER, CK_PM_VENSTER, COLOR_BLACK);
     } else {
         init_pair(K_PINKY, COLOR_MAGENTA, COLOR_BLACK);
         init_pair(K_CLYDE, COLOR_GREEN, COLOR_BLACK);
+        init_pair(K_PM_VENSTER, COLOR_WHITE, COLOR_BLACK);
     }
 
     init_pair(K_PACMAN, COLOR_YELLOW, COLOR_BLACK);
@@ -30,6 +33,9 @@ void init_kleuren(void) {
 
     init_pair(K_BLINKY, COLOR_RED | COLOR_BRIGHT, COLOR_BLACK);
     init_pair(K_INKY, COLOR_CYAN, COLOR_BLACK);
+
+    init_pair(K_BANG, COLOR_GREEN, COLOR_BLACK);
+    init_pair(K_BANG_ALT, COLOR_WHITE, COLOR_GREEN);
 }
 
 void wkleur_aan(WINDOW *win, kleur kleur) {
