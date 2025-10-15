@@ -11,14 +11,62 @@
 struct pacman_data;
 typedef struct pacman_data pacman;
 
+
+/* Maak een pacmanspel
+ *
+ * veld: de speelveld. Deze functie neemt ownership.
+ * hoogte: een pointer om de gevraagde vensterhoogte in te schrijven
+ * breedte: een pointer om de gevraagde vensterhoogte in te schrijven
+ *
+ * Uitvoer: een pointer naar een pacmanspel, of NULL als er iets fout gaat
+ *
+ * Side effects:
+ * - hoogte en breedte worden gezet
+ */
 pacman *pm_maak(rooster *veld, int *hoogte, int *breedte);
 
+
+/* Reageer op een gedrukte toets
+ *
+ * toets: de toets die gedrukt is
+ * data: de speldata
+ *
+ * Uitvoer: 1 als de toets gebruikt is, anders 0
+ *
+ * Side effects:
+ * - de speldata kan aangepast worden
+ */
 int pm_toets(int toets, pacman *data);
 
+
+/* Simuleer een stap van het spel
+ *
+ * data: de speldata
+ *
+ * Uitvoer: 1 als het spel doorgaat, 0 als het voorbij is
+ *
+ * Side effects:
+ * - de speldata wordt veranderd
+ */
 int pm_stap(pacman *data);
 
-void pm_teken(WINDOW *win, pacman *data);
 
+/* Teken het spel
+ *
+ * win: het venster om op te tekenen
+ * data: de speldata
+ *
+ * Side effects:
+ * - tekst wordt naar het venster geschreven
+ */
+void pm_teken(WINDOW *win, const pacman *data);
+
+
+/* Geef alle resources vrij die zijn gealloceerd voor een pacmanspel.
+ * De spelpointer is na aanroep van deze functie niet meer bruikbaar.
+ *
+ * data: een pointer naar de speldata
+ */
 void pm_klaar(pacman *data);
 
 #endif

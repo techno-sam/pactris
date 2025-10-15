@@ -17,20 +17,12 @@
 struct rooster_data;
 typedef struct rooster_data rooster;
 
-typedef enum {
-    BEGIN,
-    AAN_HET_SPELEN,
-    GEWONNEN,
-    VERLOREN
-} toestand;
-
 /* Maak een rooster op basis van de data in de gegeven stream.
 
    fh: de stream waaruit het doolhof gelezen moet worden.
 
    Uitvoer: als alles goed gaat, een pointer naar een rooster (die op de heap is
             gealloceerd), dat overeenkomt met de gegeven beschrijving.
-            De begintoestand is BEGIN.
 
             Als de beschrijving niet consistent is (bijvoorbeeld
             niet alle rijen zijn even lang, of er klopt iets anders niet), of
@@ -39,23 +31,6 @@ typedef enum {
             achter.)
 */
 rooster *rooster_lees(FILE *fh);
-
-
-/* Vraag de huidige toestand van het spel op.
-
-   rp: een pointer naar het rooster.
-
-   Uitvoer: de toestand.
-*/
-toestand rooster_vraag_toestand(const rooster *rp);
-
-
-/* Verander de huidige toestand van het spel.
-
-   rp: een pointer naar het rooster.
-   t:  de nieuwe toestand.
-*/
-void rooster_zet_toestand(rooster *rp, toestand t);
 
 
 /* Geef alle resources vrij die zijn gealloceerd voor een rooster.

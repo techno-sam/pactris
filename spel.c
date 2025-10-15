@@ -24,6 +24,8 @@
 typedef struct {
     pacman *pm_data;
     WINDOW *pm_win;
+    int pm_hoogte;
+    int pm_breedte;
 } spel;
 
 WINDOW *centered_window(int hoogte, int breedte) {
@@ -48,6 +50,8 @@ spel *maak_spel(rooster *pacman_veld) {
     }
 
     sp->pm_win = centered_window(hoogte, breedte);
+    sp->pm_hoogte = hoogte;
+    sp->pm_breedte = breedte;
 
     return sp;
 }
@@ -76,14 +80,26 @@ void speel(spel *sp) {
                     case 27: // ESC
                         speel = 0;
                         break;
+                    case KEY_RESIZE:
+                        delwin(sp->pm_win);
+                        sp->pm_win = centered_window(sp->pm_hoogte, sp->pm_breedte);
+
+                        for (int y = 0; y < LINES; y++) {
+                            move(y, 0);
+                            for (int x = 0; x < COLS; x++) {
+                                addch(' ');
+                            }
+                        }
+
+                        break;
                 }
             }
         }
 
-        // 2. stap, 5 Hz
+        // 2. stap, 25 Hz
         clock_t nu = clock();
         clock_t delta = nu - pm_laatste_stap;
-        if (delta > CLOCKS_PER_SEC / 5) {
+        if (delta > CLOCKS_PER_SEC / 25) {
             pm_laatste_stap = nu;
             speel &= pm_stap(sp->pm_data);
         }

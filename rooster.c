@@ -5,7 +5,6 @@
 #include "rooster.h"
 
 struct rooster_data {
-    toestand toestand;
     int breedte;
     int hoogte;
     char *data;
@@ -21,7 +20,6 @@ rooster *rooster_lees(FILE *fh) {
         perror("rooster_lees: r");
         return NULL;
     }
-    r->toestand = BEGIN;
     r->breedte = 0;
     r->hoogte = 0;
 
@@ -68,7 +66,7 @@ rooster *rooster_lees(FILE *fh) {
         if (r->data[i] == '\n') {
             if (r->hoogte == 0) { // meet de breedte van de eerste regel
                 if (regel_breedte == 0) {
-fprintf(stderr, "rooster_lees: een doolhof mag niet"
+                    fprintf(stderr, "rooster_lees: een doolhof mag niet"
                                     " een breedte van nul hebben\n");
                     free(r->data);
                     free(r);
@@ -105,14 +103,6 @@ fprintf(stderr, "rooster_lees: een doolhof mag niet"
     }
 
     return r;
-}
-
-toestand rooster_vraag_toestand(const rooster *rp) {
-    return rp->toestand;
-}
-
-void rooster_zet_toestand(rooster *rp, toestand t) {
-    rp->toestand = t;
 }
 
 void rooster_klaar(rooster *rp) {
