@@ -8,6 +8,8 @@
 
 // Pacman config
 
+// voor debuggen, of pacman gespeeld wordt
+#define PACMAN 1
 // stappen/seconde
 #define PM_HERTZ 25 
 // maximum aantal levens

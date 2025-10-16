@@ -20,6 +20,7 @@
 #include <stdio.h>
 
 #include "rooster.h"
+#include "spel.h"
 
 struct pacman_data;
 typedef struct pacman_data pacman;
@@ -64,12 +65,12 @@ int pm_toets(int toets, pacman *data);
  *
  * data: de speldata
  *
- * Uitvoer: 1 als het spel doorgaat, 0 als het voorbij is
+ * Uitvoer: de toestand waarin het spel moet verkeren
  *
  * Side effects:
  * - de speldata wordt veranderd
  */
-int pm_stap(pacman *data);
+toestand pm_stap(pacman *data);
 
 
 /* Teken het spel

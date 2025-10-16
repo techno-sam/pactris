@@ -8,6 +8,7 @@
 #include "kleuren.h"
 #include "rooster.h"
 #include "config.h"
+#include "spel.h"
 
 #define SCORE_HOOGTE 3
 
@@ -409,7 +410,10 @@ int speler_eet_spook(const entity *speler, const entity *begin_spook, spook *spo
  * - spoken kunnen van plaats en richting veranderen
  */
 void speler_eet_spoken(pacman *data) {
-    int gegeten = speler_eet_spook(&data->speler, &data->start.blinky, &data->blinky) +
+    // blinky wordt naar pinky's startpositie gestuurd,
+    // want anders verschijnt ie buiten het spookhuis
+    // (en dan kan de speler heel snel heel veel punten krijgen)
+    int gegeten = speler_eet_spook(&data->speler, &data->start.pinky, &data->blinky) +
                   speler_eet_spook(&data->speler, &data->start.pinky, &data->pinky) +
                   speler_eet_spook(&data->speler, &data->start.inky, &data->inky) +
                   speler_eet_spook(&data->speler, &data->start.clyde, &data->clyde);
@@ -668,7 +672,7 @@ int pm_toets(int toets, pacman *data) {
     return 0;
 }
 
-int pm_stap(pacman *data) {
+toestand pm_stap(pacman *data) {
     if (data->bang_stappen == 0) {
         data->n_gegeten_spoken = 0;
     }
@@ -693,9 +697,9 @@ int pm_stap(pacman *data) {
         }
 
         data->stappen++;
-        return 1;
+        return AAN_HET_SPELEN;
     } else if (data->levens == 0) {
-        return 0;
+        return VERLOREN;
     }
 
     verander_speler_richting(data);
@@ -711,7 +715,11 @@ int pm_stap(pacman *data) {
 
     data->stappen++;
 
-    return 1;
+    if (data->gegeten_voedsel >= data->begin_voedsel) {
+        return GEWONNEN;
+    }
+
+    return AAN_HET_SPELEN;
 }
 
 void pm_teken(WINDOW *win, const pacman *data) {
