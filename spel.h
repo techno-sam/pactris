@@ -14,6 +14,12 @@
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
 typedef enum {
+    ST_PACMAN = 1,
+    ST_TETRIS = 2,
+    ST_ALLEBEI = ST_PACMAN | ST_TETRIS
+} spel_type;
+
+typedef enum {
     AAN_HET_SPELEN,
     GEWONNEN,
     VERLOREN,

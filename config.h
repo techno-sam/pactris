@@ -13,12 +13,6 @@
 // De ruimte tussen de twee spellen
 #define SPEL_MARGE 4
 
-// voor debuggen, of pacman gespeeld wordt
-#define PACMAN 1
-
-// voor debuggen, of tetris gespeeld wordt
-#define TETRIS 1
-
 ///////////////////
 // Pacman config //
 ///////////////////
@@ -36,18 +30,10 @@
 #define PM_BANG_WAARSCHUWING (2 * PM_HERTZ)
 
 // hoe lang worden spoken bang per gegeten supervoedsel
-#if TETRIS
-#define PM_BANG_STAPPEN (12 * PM_HERTZ)
-#else
-#define PM_BANG_STAPPEN (8 * PM_HERTZ)
-#endif
+#define PM_BANG_STAPPEN (10 * PM_HERTZ)
 
 // maximum hoeveelheid tijd dat spoken bang kunnen zijn
-#if TETRIS
-#define PM_MAX_BANG_STAPPEN (30 * PM_HERTZ)
-#else
-#define PM_MAX_BANG_STAPPEN (16 * PM_HERTZ)
-#endif
+#define PM_MAX_BANG_STAPPEN (20 * PM_HERTZ)
 
 ///////////////////
 // Tetris config //

@@ -26,18 +26,14 @@
 
 typedef struct {
     pacman *pm_data;
-#if PACMAN
     WINDOW *pm_win;
     int pm_hoogte;
     int pm_breedte;
-#endif
 
     tetris *tr_data;
-#if TETRIS
     WINDOW *tr_win;
     int tr_hoogte;
     int tr_breedte;
-#endif
 
     int totale_breedte;
     int totale_hoogte;
@@ -114,35 +110,37 @@ void verlies_scherm(void) {
  * - `pm_win` en `tr_win` worden aangepast
  */
 void maak_vensters(spel *sp) {
-#if PACMAN && TETRIS
-    int totale_breedte = sp->pm_breedte + SPEL_MARGE + sp->tr_breedte;
-    int x0 = (COLS - totale_breedte) / 2;
+    if (sp->pm_data != NULL && sp->tr_data != NULL) {
+        int totale_breedte = sp->pm_breedte + SPEL_MARGE + sp->tr_breedte;
+        int x0 = (COLS - totale_breedte) / 2;
 
-    sp->pm_win = newwin(
-        sp->pm_hoogte,
-        sp->pm_breedte,
-        (LINES - sp->pm_hoogte) / 2,
-        x0
-    );
+        sp->pm_win = newwin(
+            sp->pm_hoogte,
+            sp->pm_breedte,
+            (LINES - sp->pm_hoogte) / 2,
+            x0
+        );
 
-    sp->tr_win = newwin(
-        sp->tr_hoogte,
-        sp->tr_breedte,
-        (LINES - sp->tr_hoogte) / 2,
-        x0 + sp->pm_breedte + SPEL_MARGE
-    );
+        sp->tr_win = newwin(
+            sp->tr_hoogte,
+            sp->tr_breedte,
+            (LINES - sp->tr_hoogte) / 2,
+            x0 + sp->pm_breedte + SPEL_MARGE
+        );
 
-    sp->totale_breedte = totale_breedte;
-    sp->totale_hoogte = MAX(sp->pm_hoogte, sp->tr_hoogte);
-#elif PACMAN
-    sp->pm_win = maak_venster(sp->pm_hoogte, sp->pm_breedte);
-    sp->totale_breedte = sp->pm_breedte;
-    sp->totale_hoogte = sp->pm_hoogte;
-#elif TETRIS
-    sp->tr_win = maak_venster(sp->tr_hoogte, sp->tr_breedte);
-    sp->totale_breedte = sp->tr_breedte;
-    sp->totale_hoogte = sp->tr_hoogte;
-#endif
+        sp->totale_breedte = totale_breedte;
+        sp->totale_hoogte = MAX(sp->pm_hoogte, sp->tr_hoogte);
+    } else if (sp->pm_data != NULL) {
+        sp->pm_win = maak_venster(sp->pm_hoogte, sp->pm_breedte);
+
+        sp->totale_breedte = sp->pm_breedte;
+        sp->totale_hoogte = sp->pm_hoogte;
+    } else if (sp->tr_data != NULL) {
+        sp->tr_win = maak_venster(sp->tr_hoogte, sp->tr_breedte);
+
+        sp->totale_breedte = sp->tr_breedte;
+        sp->totale_hoogte = sp->tr_hoogte;
+    }
 }
 
 /* Wis het scherm en maak nieuwe vensters
@@ -154,13 +152,13 @@ void maak_vensters(spel *sp) {
  * - het venster wordt gewist
  */
 void na_resize(spel *sp) {
-#if PACMAN
-    delwin(sp->pm_win);
-#endif
+    if (sp->pm_data) {
+        delwin(sp->pm_win);
+    }
 
-#if TETRIS
-    delwin(sp->tr_win);
-#endif
+    if (sp->tr_data) {
+        delwin(sp->tr_win);
+    }
 
     maak_vensters(sp);
     wis_scherm();
@@ -192,11 +190,12 @@ void zorg_voldoende_maat(spel *sp) {
 
 /* Probeer het spel te maken
  *
+ * spel_type: de type van het spel
  * pacman_veld: een pointer naar een rooster dat het pacmanspeelveld bevat
  *
  * Uitvoer: het spel, of NULL als er iets misgaat
  */
-spel *maak_spel(rooster *pacman_veld) {
+spel *maak_spel(spel_type spel_type, rooster *pacman_veld) {
     spel *sp = malloc(sizeof(spel));
     if (sp == NULL) {
         perror("maak_spel");
@@ -205,53 +204,48 @@ spel *maak_spel(rooster *pacman_veld) {
 
     // 1. Maak spellen
 
-    // we maken altijd het pacmanspel (om bugs zoveel mogelijk te vangen),
-    // maar in de debugmodus maken we het venster niet.
-    // hierdoor kunnen we tetris testen zonder ons zorgen te hoeven maken over twee vensters
-    int pm_hoogte, pm_breedte;
-    sp->pm_data = pm_maak(pacman_veld, &pm_hoogte, &pm_breedte);
+    // 1a. Pacman
+    int_callback na_verwijder;
+    if (spel_type & ST_PACMAN) {
+        sp->pm_data = pm_maak(pacman_veld, &sp->pm_hoogte, &sp->pm_breedte);
 
-    if (sp->pm_data == NULL) {
-        free(sp);
-        return NULL;
+        if (sp->pm_data == NULL) {
+            free(sp);
+            return NULL;
+        }
+
+        na_verwijder.fn = (int_callback_fn) &pm_verwijderde_regels_cb;
+        na_verwijder.userdata = sp->pm_data;
+    } else {
+        sp->pm_data = NULL;
+        sp->pm_win = NULL;
+        sp->pm_hoogte = 0;
+        sp->pm_breedte = 0;
+
+        na_verwijder.fn = NULL;
+        na_verwijder.userdata = NULL;
     }
 
-    // ditto het tetrisspel
-#if PACMAN
-    int_callback na_verwijder = {
-        .fn = (int_callback_fn) &pm_verwijderde_regels_cb,
-        .userdata = sp->pm_data,
-    };
-#else
-    int_callback na_verwijder = {
-        .fn = NULL,
-        .userdata = NULL,
-    };
-#endif
+    // 1b. Tetris
+    if (spel_type & ST_TETRIS) {
+        sp->tr_data = tr_maak(na_verwijder, &sp->tr_hoogte, &sp->tr_breedte);
 
-    int tr_hoogte, tr_breedte;
-    sp->tr_data = tr_maak(na_verwijder, &tr_hoogte, &tr_breedte);
+        if (sp->tr_data == NULL) {
+            if (sp->pm_data) {
+                pm_klaar(sp->pm_data);
+            }
 
-    if (sp->tr_data == NULL) {
-#if PACMAN
-        pm_klaar(sp->pm_data);
-#endif
-        free(sp);
-        return NULL;
+            free(sp);
+            return NULL;
+        }
+    } else {
+        sp->tr_data = NULL;
+        sp->tr_win = NULL;
+        sp->tr_hoogte = 0;
+        sp->tr_breedte = 0;
     }
 
     // 2. Maak vensters
-
-#if PACMAN
-    sp->pm_hoogte = pm_hoogte;
-    sp->pm_breedte = pm_breedte;
-#endif
-
-#if TETRIS
-    sp->tr_hoogte = tr_hoogte;
-    sp->tr_breedte = tr_breedte;
-#endif
-
     maak_vensters(sp);
 
     return sp;
@@ -265,19 +259,15 @@ spel *maak_spel(rooster *pacman_veld) {
  * - alle sub-spellen worden getekend
  */
 void teken_spel(spel *sp) {
-#if PACMAN
-    pm_teken(sp->pm_win, sp->pm_data);
-    wnoutrefresh(sp->pm_win);
-#else
-    mvprintw(0, 0, "DEBUG: Pacman is niet actief");
-#endif
+    if (sp->pm_data) {
+        pm_teken(sp->pm_win, sp->pm_data);
+        wnoutrefresh(sp->pm_win);
+    }
 
-#if TETRIS
-    tr_teken(sp->tr_win, sp->tr_data);
-    wnoutrefresh(sp->tr_win);
-#else
-    mvprintw(1, 0, "DEBUG: Tetris is niet actief");
-#endif
+    if (sp->tr_data) {
+        tr_teken(sp->tr_win, sp->tr_data);
+        wnoutrefresh(sp->tr_win);
+    }
 
     doupdate();
 }
@@ -294,13 +284,8 @@ void teken_spel(spel *sp) {
 toestand speel(spel *sp) {
     teken_spel(sp);
 
-#if PACMAN
     clock_t pm_laatste_stap = clock();
-#endif
-
-#if TETRIS
     clock_t tr_laatste_stap = clock();
-#endif
 
     while (1) {
         zorg_voldoende_maat(sp);
@@ -308,16 +293,8 @@ toestand speel(spel *sp) {
         // 1. Reageer op toetsen
         int toets = getch();
         if (toets != ERR) {
-#if PACMAN && TETRIS
-            int gebruikt = pm_toets(toets, sp->pm_data) ||
-                           tr_toets(toets, sp->tr_data);
-#elif PACMAN
-            int gebruikt = pm_toets(toets, sp->pm_data);
-#elif TETRIS
-            int gebruikt = tr_toets(toets, sp->tr_data);
-#else
-            int gebruikt = 0;
-#endif
+            int gebruikt = (sp->pm_data != NULL && pm_toets(toets, sp->pm_data)) ||
+                           (sp->tr_data != NULL && tr_toets(toets, sp->tr_data));
 
             if (!gebruikt) {
                 switch (toets) {
@@ -332,9 +309,8 @@ toestand speel(spel *sp) {
 
         // 2. Stap, 25 Hz
         clock_t nu = clock();
-#if PACMAN
         clock_t pm_delta = nu - pm_laatste_stap;
-        if (pm_delta > CLOCKS_PER_SEC / PM_HERTZ) {
+        if (sp->pm_data != NULL && pm_delta > CLOCKS_PER_SEC / PM_HERTZ) {
             pm_laatste_stap = nu;
             toestand t = pm_stap(sp->pm_data);
             switch (t) {
@@ -344,11 +320,9 @@ toestand speel(spel *sp) {
                     return t;
             }
         }
-#endif
 
-#if TETRIS
         clock_t tr_delta = nu - tr_laatste_stap;
-        if (tr_delta > CLOCKS_PER_SEC / TR_HERTZ) {
+        if (sp->tr_data != NULL && tr_delta > CLOCKS_PER_SEC / TR_HERTZ) {
             tr_laatste_stap = nu;
             toestand t = tr_stap(sp->tr_data);
             switch (t) {
@@ -358,7 +332,6 @@ toestand speel(spel *sp) {
                     return t;
             }
         }
-#endif
 
         // 3. Teken
         teken_spel(sp);
@@ -371,38 +344,61 @@ toestand speel(spel *sp) {
  * sp: een pointer naar het spel
  */
 void spel_klaar(spel *sp) {
-    pm_klaar(sp->pm_data);
-#if PACMAN
-    delwin(sp->pm_win);
-#endif
+    if (sp->pm_data) {
+        pm_klaar(sp->pm_data);
+        delwin(sp->pm_win);
+    }
 
-    tr_klaar(sp->tr_data);
-#if TETRIS
-    delwin(sp->tr_win);
-#endif
+    if (sp->tr_data) {
+        tr_klaar(sp->tr_data);
+        delwin(sp->tr_win);
+    }
 
     free(sp);
 }
 
 int main(int argc, char *argv[]) {
     // 1. Controleer dat er een pacmanbestand is opgegeven op de command line.
-    if (argc != 2) {
-        fprintf(stderr, "gebruik: ./spel assets/pacman.txt\n");
+    if (argc != 2 && argc != 3) {
+        fprintf(stderr, "gebruik: %s allebei|pacman|tetris [PACMAN_ROOSTER]\n", argv[0]);
+        return 1;
+    }
+
+    spel_type spel_type;
+    if (strcmp(argv[1], "allebei") == 0) {
+        spel_type = ST_ALLEBEI;
+    } else if (strcmp(argv[1], "pacman") == 0) {
+        spel_type = ST_PACMAN;
+    } else if (strcmp(argv[1], "tetris") == 0) {
+        spel_type = ST_TETRIS;
+    } else {
+        fprintf(stderr, "gebruik: %s allebei|pacman|tetris [PACMAN_ROOSTER]\n", argv[0]);
         return 1;
     }
 
     // 2. Open het pacmanbestand en lees het rooster.
-    FILE *fh = fopen(argv[1], "r");
-    if (fh == NULL) {
-        perror("main");
-        return 1;
-    }
-    rooster *pacman_veld = rooster_lees(fh);
-    fclose(fh);
+    rooster *pacman_veld = NULL;
+    if (spel_type & ST_PACMAN) {
+        if (argc == 2) { // pacman heeft wel een roosterbestand nodig
+            fprintf(stderr, "gebruik: %s %s PACMAN_ROOSTER\n", argv[0], argv[1]);
+            return 1;
+        }
 
-    // 3. Bepaal of het lezen van het rooster is gelukt.
-    if (pacman_veld == NULL) {
-        fprintf(stderr, "Kan rooster niet maken.\n");
+        FILE *fh = fopen(argv[2], "r");
+        if (fh == NULL) {
+            perror("main");
+            return 1;
+        }
+        pacman_veld = rooster_lees(fh);
+        fclose(fh);
+
+        // 3. Bepaal of het lezen van het rooster is gelukt.
+        if (pacman_veld == NULL) {
+            fprintf(stderr, "Kan rooster niet maken.\n");
+            return 1;
+        }
+    } else if (argc == 3) { // tetris heeft geen roosterbestand nodig
+        fprintf(stderr, "gebruik: %s %s\n", argv[0], argv[1]);
         return 1;
     }
 
@@ -416,7 +412,7 @@ int main(int argc, char *argv[]) {
     init_kleuren();
 
     // 5. Maak het spel
-    spel *spel = maak_spel(pacman_veld);
+    spel *spel = maak_spel(spel_type, pacman_veld);
     if (spel == NULL) {
         fprintf(stderr, "Kan spel niet maken.\n");
         return 1;
