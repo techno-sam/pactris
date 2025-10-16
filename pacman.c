@@ -86,20 +86,20 @@ struct pacman_data {
 // Spook doelen zijn van
 // https://www.gamedeveloper.com/design/the-pac-man-dossier#Chapter%204:%20Meet%20the%20Ghosts
 
-void doel_blinky(const pacman *data, int *doel_x, int *doel_y) {
+static void doel_blinky(const pacman *data, int *doel_x, int *doel_y) {
     // Blinky volgt de speler
     *doel_x = data->speler.x;
     *doel_y = data->speler.y;
 }
 
-void doel_pinky(const pacman *data, int *doel_x, int *doel_y) {
+static void doel_pinky(const pacman *data, int *doel_x, int *doel_y) {
     // Pinky probeert voor de speler te komen
     *doel_x = data->speler.x + 4 * DX[data->speler.rot];
     *doel_y = data->speler.y + 4 * DY[data->speler.rot];
 }
 
 // NOTE: hangt af van blinky.ent.{x,y}, dus Inky moet voor Blinky bewegen
-void doel_inky(const pacman *data, int *doel_x, int *doel_y) {
+static void doel_inky(const pacman *data, int *doel_x, int *doel_y) {
     // Inky loopt weg van de speler als Blinky ver van de speler is,
     // anders volgt ie de speler
     int tmp_x = data->speler.x + 2 * DX[data->speler.rot];
@@ -109,7 +109,7 @@ void doel_inky(const pacman *data, int *doel_x, int *doel_y) {
     *doel_y = tmp_y + (tmp_y - data->blinky.ent.y);
 }
 
-void doel_clyde(const pacman *data, int *doel_x, int *doel_y) {
+static void doel_clyde(const pacman *data, int *doel_x, int *doel_y) {
     // Clyde wil naar de linkeronderhoek als ie binnen 8 stappen van de speler is,
     // anders volgt ie de speler
 
@@ -133,7 +133,7 @@ void doel_clyde(const pacman *data, int *doel_x, int *doel_y) {
  *
  * Uitvoer: een spook op (0, 0) dat omhoog wijst en geen huis arrest heeft
  */
-spook maak_spook(doel_kiezer doel, kleur kleur) {
+static spook maak_spook(doel_kiezer doel, kleur kleur) {
     spook sp = {
         .ent = { .x = 0, .y = 0, .rot = OMHOOG },
         .huis_arrest = -1,
@@ -151,7 +151,7 @@ spook maak_spook(doel_kiezer doel, kleur kleur) {
  * - de posities van de spoken en speler worden veranderd
  * - de huis_arrest waardes van de spoken worden veranderd
  */
-void ga_naar_start(pacman *data) {
+static void ga_naar_start(pacman *data) {
     data->speler = data->start.speler;
     data->blinky.ent = data->start.blinky;
     data->pinky.ent = data->start.pinky;
@@ -178,7 +178,7 @@ void ga_naar_start(pacman *data) {
  * - de positie van de entity wordt misschien gezet
  * - de startpositiekarakter wordt verwijderd
  */
-int zoek_plaats(rooster *veld, char c, entity *ent, richting rot) {
+static int zoek_plaats(rooster *veld, char c, entity *ent, richting rot) {
     ent->rot = rot;
 
     rooster_zoek(veld, c, &ent->x, &ent->y);
@@ -196,7 +196,7 @@ int zoek_plaats(rooster *veld, char c, entity *ent, richting rot) {
  *
  * Uitvoer: 1 als het vakje bewandelbaar is, anders 0
  */
-int bewandelbaar(char c) {
+static int bewandelbaar(char c) {
     return c == ' ' || c == '.' || c == '*';
 }
 
@@ -212,7 +212,7 @@ int bewandelbaar(char c) {
  *
  * Uitvoer: 1 als de stap mogelijk is, anders 0
  */
-int kan_bewegen(const rooster *veld, const entity *ent, richting rot) {
+static int kan_bewegen(const rooster *veld, const entity *ent, richting rot) {
     int x1 = ent->x + DX[rot];
     int y1 = ent->y + DY[rot];
 
@@ -231,7 +231,7 @@ int kan_bewegen(const rooster *veld, const entity *ent, richting rot) {
  * Side effects:
  * - verplaatst `ent`
  */
-char entity_loop(const rooster *veld, entity *ent) {
+static char entity_loop(const rooster *veld, entity *ent) {
     int x1 = ent->x + DX[ent->rot];
     int y1 = ent->y + DY[ent->rot];
 
@@ -254,7 +254,7 @@ char entity_loop(const rooster *veld, entity *ent) {
  * - de wandelrichting van de speler kan veranderen
  * - de doelrichting kan worden gewist
  */
-void verander_speler_richting(pacman *data) {
+static void verander_speler_richting(pacman *data) {
     if (data->doel_rot == GEEN) {
         return;
     }
@@ -281,7 +281,7 @@ void verander_speler_richting(pacman *data) {
  * Side effects:
  * - de huis_arrest van maximaal een spook wordt verminderd
  */
-void verminder_huis_arrest(pacman *data) {
+static void verminder_huis_arrest(pacman *data) {
     spook *spoken[] = {
         &data->blinky,
         &data->pinky,
@@ -305,7 +305,7 @@ void verminder_huis_arrest(pacman *data) {
  *
  * Uitvoer: 1 als de speler en het spook in hetzelfde vakje zitten, anders 0
  */
-int is_gegeten(const entity *speler, const spook *spook) {
+static int is_gegeten(const entity *speler, const spook *spook) {
     return speler->x == spook->ent.x && speler->y == spook->ent.y;
 }
 
@@ -315,7 +315,7 @@ int is_gegeten(const entity *speler, const spook *spook) {
  *
  * Uitvoer: 1 als de speler en een spook in hetzelfde vakje zitten, ander 0
  */
-int is_gegeten_alle_spoken(const pacman *data) {
+static int is_gegeten_alle_spoken(const pacman *data) {
     return is_gegeten(&data->speler, &data->blinky) ||
            is_gegeten(&data->speler, &data->pinky) ||
            is_gegeten(&data->speler, &data->inky) ||
@@ -330,7 +330,7 @@ int is_gegeten_alle_spoken(const pacman *data) {
  * Side effects:
  * - het spook vermindert z'n huis_arrest of beweegt
  */
-void stap_spook(const pacman *data, spook *spook) {
+static void stap_spook(const pacman *data, spook *spook) {
     if (spook->huis_arrest == 0) {
         spook->huis_arrest = -1;
 
@@ -392,7 +392,7 @@ void stap_spook(const pacman *data, spook *spook) {
  * Side effects:
  * - het spook kan van plaats en richting veranderen
  */
-int speler_eet_spook(const entity *speler, const entity *begin_spook, spook *spook) {
+static int speler_eet_spook(const entity *speler, const entity *begin_spook, spook *spook) {
     if (speler->x == spook->ent.x && speler->y == spook->ent.y) {
         spook->ent = *begin_spook;
         spook->huis_arrest = 15;
@@ -409,7 +409,7 @@ int speler_eet_spook(const entity *speler, const entity *begin_spook, spook *spo
  * Side effects:
  * - spoken kunnen van plaats en richting veranderen
  */
-void speler_eet_spoken(pacman *data) {
+static void speler_eet_spoken(pacman *data) {
     // blinky wordt naar pinky's startpositie gestuurd,
     // want anders verschijnt ie buiten het spookhuis
     // (en dan kan de speler heel snel heel veel punten krijgen)
@@ -434,7 +434,7 @@ void speler_eet_spoken(pacman *data) {
  * - de speler beweegt of gaat dood
  * - voedsel wordt gegeten
  */
-void stap_speler(pacman *data) {
+static void stap_speler(pacman *data) {
     // zodat pacman niet door een spook heen kan lopen
     // (`>@` -> `@>` zou anders mogelijk zijn)
     int gegeten = 0;
@@ -483,7 +483,7 @@ void stap_speler(pacman *data) {
  * Side effects:
  * - tekst wordt naar het venster geschreven
  */
-void teken_score(WINDOW *win, const pacman *data) {
+static void teken_score(WINDOW *win, const pacman *data) {
     mvwprintw(win, 1, 1, "Score: %d", data->gegeten_voedsel + data->spook_punten);
 
     // levens/hartjes
@@ -512,7 +512,7 @@ void teken_score(WINDOW *win, const pacman *data) {
  * Side effects:
  * - tekst wordt naar het venster geschreven
  */
-void teken_rooster(WINDOW *win, const rooster *rp) {
+static void teken_rooster(WINDOW *win, const rooster *rp) {
     int breedte = rooster_breedte(rp);
     int hoogte = rooster_hoogte(rp);
 
@@ -552,7 +552,7 @@ void teken_rooster(WINDOW *win, const rooster *rp) {
  * Side effects:
  * - tekst wordt naar het venster geschreven
  */
-void teken_spook(WINDOW *win, const spook *spook, const int bang_stappen) {
+static void teken_spook(WINDOW *win, const spook *spook, const int bang_stappen) {
     kleur kleur = spook->kleur;
 
     if (bang_stappen > 0) {

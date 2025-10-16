@@ -93,7 +93,7 @@ struct tetris_data {
  *
  * Uitvoer: 1 als de tetromino op (x, y) staat, ander 0
  */
-int tet_op(const tetromino *tet, int y, int x) {
+static int tet_op(const tetromino *tet, int y, int x) {
     y -= tet->y;
     x -= tet->x;
 
@@ -132,7 +132,7 @@ int tet_op(const tetromino *tet, int y, int x) {
  *
  * Uitvoer: een tetromino type, LEEG, of MUUR
  */
-int kijk_kuil(const_kuil_ptr kuil, int y, int x) {
+static int kijk_kuil(const_kuil_ptr kuil, int y, int x) {
     if (y < 0) {
         return LEEG;
     }
@@ -144,6 +144,10 @@ int kijk_kuil(const_kuil_ptr kuil, int y, int x) {
     return kuil[y][x];
 }
 
+/****************/
+/* Stapfuncties */
+/****************/
+
 /* Plaat een blok op een plaats in de kuil
  *
  * kuil: de kuil
@@ -154,7 +158,7 @@ int kijk_kuil(const_kuil_ptr kuil, int y, int x) {
  * Side effects:
  * - de kuil wordt aangepast, als (x, y) binnen de kuil ligt
  */
-void zet_kuil(kuil_ptr kuil, int y, int x, int type) {
+static void zet_kuil(kuil_ptr kuil, int y, int x, int type) {
     if (y < 0 || x < 0 || x >= TR_BREEDTE || y >= TR_HOOGTE) {
         return;
     }
@@ -169,7 +173,7 @@ void zet_kuil(kuil_ptr kuil, int y, int x, int type) {
  *
  * Uitvoer: 1 als de tetromino past, anders 0
  */
-int tet_past(const_kuil_ptr kuil, const tetromino *tet) {
+static int tet_past(const_kuil_ptr kuil, const tetromino *tet) {
     for (int y = tet->y; y < tet->y + 4; y++) {
         for (int x = tet->x; x < tet->x + 4; x++) {
             if (tet_op(tet, y, x) && kijk_kuil(kuil, y, x) != LEEG) {
@@ -192,7 +196,7 @@ int tet_past(const_kuil_ptr kuil, const tetromino *tet) {
  * Side effects:
  * - de tetromino verandert van plaats/rotatie als ie in de nieuwe staat nog past
  */
-int probeer_beweging(const_kuil_ptr kuil, tetromino *tet, int dy, int dx, int drot) {
+static int probeer_beweging(const_kuil_ptr kuil, tetromino *tet, int dy, int dx, int drot) {
     tet->y += dy;
     tet->x += dx;
     tet->rot = (tet->rot + drot) % 4;
@@ -214,7 +218,7 @@ int probeer_beweging(const_kuil_ptr kuil, tetromino *tet, int dy, int dx, int dr
  *
  * Uitvoer: 1 als de regel vol is, anders 0
  */
-int is_regel_vol(const_kuil_ptr kuil, int y) {
+static int is_regel_vol(const_kuil_ptr kuil, int y) {
     for (int x = 0; x < TR_BREEDTE; x++) {
         if (kijk_kuil(kuil, y, x) == LEEG) {
             return 0;
@@ -224,16 +228,16 @@ int is_regel_vol(const_kuil_ptr kuil, int y) {
     return 1;
 }
 
-/* Verwijder lege regels van de kuil
+/* Verwijder volle regels van de kuil
  *
  * kuil: de kuil om regels van de verwijderen
  *
  * Uitvoer: het aantal verwijderde regels
  *
  * Side effects:
- * - lege regels worden verwijderd
+ * - volle regels worden verwijderd
  */
-int verwijder_lege_regels(kuil_ptr kuil) {
+static int verwijder_volle_regels(kuil_ptr kuil) {
     int n =0;
 
     int schrijf = TR_HOOGTE - 1;
@@ -263,7 +267,7 @@ int verwijder_lege_regels(kuil_ptr kuil) {
  * Side effects:
  * - de kuil wordt aangepast
  */
-int plaats_tet(kuil_ptr kuil, const tetromino *tet) {
+static int plaats_tet(kuil_ptr kuil, const tetromino *tet) {
     for (int y = tet->y; y < tet->y + 4; y++) {
         for (int x = tet->x; x <tet->x + 4; x++) {
             if (tet_op(tet, y, x)) {
@@ -272,7 +276,7 @@ int plaats_tet(kuil_ptr kuil, const tetromino *tet) {
         }
     }
 
-    return verwijder_lege_regels(kuil);
+    return verwijder_volle_regels(kuil);
 }
 
 /* Ga naar de volgende tetromino en genereer een nieuwe
@@ -283,7 +287,7 @@ int plaats_tet(kuil_ptr kuil, const tetromino *tet) {
  * - de huidige tetromino verandert van type en gaat naar de bovenkant
  * - de volgende tetromino wordt opnieuw gekozen
  */
-void gebruik_volgende_tet(tetris *data) {
+static void gebruik_volgende_tet(tetris *data) {
     int volgende = rand() % 7;
     while (volgende == data->volgende_type || volgende == data->tet.type) {
         volgende = rand() % 7;
@@ -313,7 +317,7 @@ void gebruik_volgende_tet(tetris *data) {
  * Side effects:
  * - er wordt een doos getekend op het venster
  */
-void teken_doos_om(WINDOW *win, int y0, int x0, int hoogte, int breedte, kleur kleur) {
+static void teken_doos_om(WINDOW *win, int y0, int x0, int hoogte, int breedte, kleur kleur) {
     wkleur_aan(win, kleur);
 
     wmove(win, y0 - 1, x0 - 1);
@@ -348,7 +352,7 @@ void teken_doos_om(WINDOW *win, int y0, int x0, int hoogte, int breedte, kleur k
  * Side effects:
  * - een pixel wordt op het venster getekend
  */
-void teken_pixel_rauw(WINDOW *win, int y, int x, kleur kleur) {
+static void teken_pixel_rauw(WINDOW *win, int y, int x, kleur kleur) {
     wkleur_aan(win, kleur);
     mvwaddch(win, y, x, ' ');
     waddch(win, ' ');
@@ -365,7 +369,7 @@ void teken_pixel_rauw(WINDOW *win, int y, int x, kleur kleur) {
  * Side effects:
  * - een pixel wordt op het venster getekend
  */
-void teken_pixel(WINDOW *win, int y, int x, kleur kleur) {
+static void teken_pixel(WINDOW *win, int y, int x, kleur kleur) {
     int y0 = 1 + BOVEN_MARGE;
     int x0 = 2;
 
@@ -380,7 +384,7 @@ void teken_pixel(WINDOW *win, int y, int x, kleur kleur) {
  * Side effects:
  * - de kuil wordt op het venster getekend
  */
-void teken_kuil(WINDOW *win, const_kuil_ptr kuil) {
+static void teken_kuil(WINDOW *win, const_kuil_ptr kuil) {
     wkleur_aan(win, K_TR_MUUR);
     for (int y = 1 + BOVEN_MARGE; y < 1 + BOVEN_MARGE + TR_HOOGTE; y++) {
         mvwaddch(win, y, 1, ']');
@@ -415,7 +419,7 @@ void teken_kuil(WINDOW *win, const_kuil_ptr kuil) {
  * Side effects:
  * - een tetromino wordt op het venster getekend
  */
-void teken_tetromino(WINDOW *win, const tetromino *tet) {
+static void teken_tetromino(WINDOW *win, const tetromino *tet) {
     for (int y = tet->y; y < tet->y + 4; y++) {
         for (int x = tet->x; x < tet->x + 4; x++) {
             if (tet_op(tet, y, x)) {
@@ -433,7 +437,7 @@ void teken_tetromino(WINDOW *win, const tetromino *tet) {
  * Side effects:
  * - de volgende tetromino wordt op het venster getekend
  */
-void teken_volgende_tetromino(WINDOW *win, int type) {
+static void teken_volgende_tetromino(WINDOW *win, int type) {
     int y0 = 1 + BOVEN_MARGE;
     int x0 = 6 + TR_BREEDTE * 2;
 
@@ -529,19 +533,21 @@ void tr_klaar(tetris *data) {
 int tr_toets(int toets, tetris *data) {
     switch (toets) {
         case ',':
-        case KEY_DOWN:
+        case KEY_DOWN: // draai naar links
             probeer_beweging((const_kuil_ptr) data->kuil, &data->tet, 0, 0, 1);
             break;
         case '.':
-        case KEY_UP:
+        case KEY_UP: // draai naar rechts
             probeer_beweging((const_kuil_ptr) data->kuil, &data->tet, 0, 0, 3);
             break;
-        case KEY_LEFT:
+
+        case KEY_LEFT: // beweeg naar links
             probeer_beweging((const_kuil_ptr) data->kuil, &data->tet, 0, -1, 0);
             break;
-        case KEY_RIGHT:
+        case KEY_RIGHT: // beweeg naar rechts
             probeer_beweging((const_kuil_ptr) data->kuil, &data->tet, 0, 1, 0);
             break;
+
         case KEY_SLEFT: // spring naar links
             while (1) {
                 if (!probeer_beweging((const_kuil_ptr) data->kuil, &data->tet, 0, -1, 0)) {
@@ -556,6 +562,7 @@ int tr_toets(int toets, tetris *data) {
                 }
             }
             break;
+
         case '\n': // spring naar beneden
             while (1) {
                 if (!probeer_beweging((const_kuil_ptr) data->kuil, &data->tet, 1, 0, 0)) {
