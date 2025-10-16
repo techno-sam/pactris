@@ -21,6 +21,7 @@
 #include "kleuren.h"
 #include "pacman.h"
 #include "config.h"
+#include "tetris.h"
 #include "spel.h"
 
 typedef struct {
@@ -29,6 +30,13 @@ typedef struct {
     WINDOW *pm_win;
     int pm_hoogte;
     int pm_breedte;
+#endif
+
+    tetris *tr_data;
+#if TETRIS
+    WINDOW *tr_win;
+    int tr_hoogte;
+    int tr_breedte;
 #endif
 } spel;
 
@@ -127,6 +135,26 @@ spel *maak_spel(rooster *pacman_veld) {
 #endif
     }
 
+    // ditto het tetrisspel
+    {
+        int hoogte, breedte;
+        sp->tr_data = tr_maak(&hoogte, &breedte);
+
+        if (sp->tr_data == NULL) {
+#if PACMAN
+            pm_klaar(sp->pm_data);
+#endif
+            free(sp);
+            return NULL;
+        }
+
+#if TETRIS
+        sp->tr_win = maak_venster(hoogte, breedte);
+        sp->tr_hoogte = hoogte;
+        sp->tr_breedte = breedte;
+#endif
+    }
+
     return sp;
 }
 
@@ -143,6 +171,13 @@ void teken_spel(spel *sp) {
     wnoutrefresh(sp->pm_win);
 #else
     mvprintw(0, 0, "DEBUG: Pacman is niet actief");
+#endif
+
+#if TETRIS
+    tr_teken(sp->tr_win, sp->tr_data);
+    wnoutrefresh(sp->tr_win);
+#else
+    mvprintw(1, 0, "DEBUG: Tetris is niet actief");
 #endif
 
     doupdate();
@@ -164,12 +199,21 @@ toestand speel(spel *sp) {
     clock_t pm_laatste_stap = clock();
 #endif
 
+#if TETRIS
+    clock_t tr_laatste_stap = clock();
+#endif
+
     while (1) {
         // 1. Reageer op toetsen
         int toets = getch();
         if (toets != ERR) {
-#if PACMAN
+#if PACMAN && TETRIS
+            int gebruikt = pm_toets(toets, sp->pm_data) ||
+                           tr_toets(toets, sp->tr_data);
+#elif PACMAN
             int gebruikt = pm_toets(toets, sp->pm_data);
+#elif TETRIS
+            int gebruikt = tr_toets(toets, sp->tr_data);
 #else
             int gebruikt = 0;
 #endif
@@ -182,6 +226,10 @@ toestand speel(spel *sp) {
 #if PACMAN
                         delwin(sp->pm_win);
                         sp->pm_win = maak_venster(sp->pm_hoogte, sp->pm_breedte);
+#endif
+#if TETRIS
+                        delwin(sp->tr_win);
+                        sp->tr_win = maak_venster(sp->tr_hoogte, sp->tr_breedte);
 #endif
                         wis_scherm();
                         break;
@@ -205,6 +253,20 @@ toestand speel(spel *sp) {
         }
 #endif
 
+#if TETRIS
+        clock_t tr_delta = nu - tr_laatste_stap;
+        if (tr_delta > CLOCKS_PER_SEC / TR_HERTZ) {
+            tr_laatste_stap = nu;
+            toestand t = tr_stap(sp->tr_data);
+            switch (t) {
+                case AAN_HET_SPELEN:
+                    break;
+                default:
+                    return t;
+            }
+        }
+#endif
+
         // 3. Teken
         teken_spel(sp);
     }
@@ -219,6 +281,11 @@ void spel_klaar(spel *sp) {
     pm_klaar(sp->pm_data);
 #if PACMAN
     delwin(sp->pm_win);
+#endif
+
+    tr_klaar(sp->tr_data);
+#if TETRIS
+    delwin(sp->tr_win);
 #endif
 
     free(sp);

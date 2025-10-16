@@ -23,12 +23,32 @@ typedef enum {
     K_CLYDE,
     K_BANG,
     K_BANG_ALT,
+
+    K_TR_VENSTER,
+    K_TR_MUUR,
+    K_TR_ACHTERGROND,
+    K_TR_ACHTERGROND_ALT,
+    K_TETROMINO_0,
+    K_TETROMINO_1,
+    K_TETROMINO_2,
+    K_TETROMINO_3,
+    K_TETROMINO_4,
+    K_TETROMINO_5,
+    K_TETROMINO_6,
 } kleur;
 
 typedef enum {
     CK_PINKY = 17,
     CK_CLYDE = 18,
-    CK_PM_VENSTER = 19
+    CK_PM_VENSTER = 19,
+
+    CK_TR_TETROMINO_0 = 20,
+    CK_TR_TETROMINO_1 = 21,
+    CK_TR_TETROMINO_2 = 22,
+    CK_TR_TETROMINO_3 = 23,
+    CK_TR_TETROMINO_4 = 24,
+    CK_TR_TETROMINO_5 = 25,
+    CK_TR_TETROMINO_6 = 26,
 } custom_kleur;
 
 /* Registreer alle nodige kleuren
