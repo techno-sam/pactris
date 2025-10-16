@@ -81,6 +81,7 @@ struct tetris_data {
     tetromino tet;
     int score;
 
+    int_callback na_verwijder;
     int hoogte;
     int breedte;
 };
@@ -490,7 +491,7 @@ static void teken_score(WINDOW *win, int breedte, int score) {
     wprintw(win, "Score: %d", score);
 }
 
-tetris *tr_maak(int *hoogte, int *breedte) {
+tetris *tr_maak(int_callback na_verwijder, int *hoogte, int *breedte) {
     srand(time(NULL));
 
     tetris *data = malloc(sizeof(tetris));
@@ -522,6 +523,8 @@ tetris *tr_maak(int *hoogte, int *breedte) {
     } while (data->volgende_type == data->tet.type);
 
     data->score = 0;
+
+    data->na_verwijder = na_verwijder;
 
     return data;
 }
@@ -580,6 +583,10 @@ int tr_toets(int toets, tetris *data) {
 toestand tr_stap(tetris *data) {
     if (!probeer_beweging((const_kuil_ptr) data->kuil, &data->tet, 1, 0, 0)) {
         int verwijderde_regels = plaats_tet(data->kuil, &data->tet);
+
+        if (data->na_verwijder.fn != NULL) {
+            data->na_verwijder.fn(verwijderde_regels, data->na_verwijder.userdata);
+        }
 
         data->score += 10 * verwijderde_regels;
 

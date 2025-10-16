@@ -83,4 +83,14 @@ toestand pm_stap(pacman *data);
  */
 void pm_teken(WINDOW *win, const pacman *data);
 
+/* Reageer op Tetris' melding dat regels verwijderd zijn
+ *
+ * regels: het aantal verwijderde regels
+ * data: de speldata
+ *
+ * Side effects:
+ * - de bangperiode wordt verlengt
+ */
+void pm_verwijderde_regels_cb(int regels, pacman *data);
+
 #endif

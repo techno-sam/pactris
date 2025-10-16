@@ -38,6 +38,9 @@ typedef struct {
     int tr_hoogte;
     int tr_breedte;
 #endif
+
+    int totale_breedte;
+    int totale_hoogte;
 } spel;
 
 /* Maak een venster in het midden van de terminal
@@ -103,6 +106,90 @@ void verlies_scherm(void) {
     wacht_op_esc();
 }
 
+/* Maak de spel venster(s)
+ *
+ * sp: de speldata
+ *
+ * Side effects:
+ * - `pm_win` en `tr_win` worden aangepast
+ */
+void maak_vensters(spel *sp) {
+#if PACMAN && TETRIS
+    int totale_breedte = sp->pm_breedte + SPEL_MARGE + sp->tr_breedte;
+    int x0 = (COLS - totale_breedte) / 2;
+
+    sp->pm_win = newwin(
+        sp->pm_hoogte,
+        sp->pm_breedte,
+        (LINES - sp->pm_hoogte) / 2,
+        x0
+    );
+
+    sp->tr_win = newwin(
+        sp->tr_hoogte,
+        sp->tr_breedte,
+        (LINES - sp->tr_hoogte) / 2,
+        x0 + sp->pm_breedte + SPEL_MARGE
+    );
+
+    sp->totale_breedte = totale_breedte;
+    sp->totale_hoogte = MAX(sp->pm_hoogte, sp->tr_hoogte);
+#elif PACMAN
+    sp->pm_win = maak_venster(sp->pm_hoogte, sp->pm_breedte);
+    sp->totale_breedte = sp->pm_breedte;
+    sp->totale_hoogte = sp->pm_hoogte;
+#elif TETRIS
+    sp->tr_win = maak_venster(sp->tr_hoogte, sp->tr_breedte);
+    sp->totale_breedte = sp->tr_breedte;
+    sp->totale_hoogte = sp->tr_hoogte;
+#endif
+}
+
+/* Wis het scherm en maak nieuwe vensters
+ *
+ * sp: de speldata
+ *
+ * Side effects:
+ * - `pm_win` en `tr_win` worden aangepast
+ * - het venster wordt gewist
+ */
+void na_resize(spel *sp) {
+#if PACMAN
+    delwin(sp->pm_win);
+#endif
+
+#if TETRIS
+    delwin(sp->tr_win);
+#endif
+
+    maak_vensters(sp);
+    wis_scherm();
+}
+
+/* Zorg dat de terminal groot genoeg is
+ *
+ * sp: een pointer naar het spel
+ *
+ * Side effects:
+ * - een waarschuwing kan getekend worden
+ */
+void zorg_voldoende_maat(spel *sp) {
+    if (COLS >= sp->totale_breedte && LINES >= sp->totale_hoogte) {
+        return;
+    }
+
+    while (COLS < sp->totale_breedte || LINES < sp->totale_hoogte) {
+        wis_scherm();
+        char *bericht = "De terminal is te klein.";
+        mvprintw(LINES / 2, (COLS - strlen(bericht)) / 2, "%s", bericht);
+        refresh();
+
+        // wacht totdat de terminal groter wordt
+        while (getch() != KEY_RESIZE) {}
+        na_resize(sp);
+    }
+}
+
 /* Probeer het spel te maken
  *
  * pacman_veld: een pointer naar een rooster dat het pacmanspeelveld bevat
@@ -116,44 +203,56 @@ spel *maak_spel(rooster *pacman_veld) {
         return NULL;
     }
 
+    // 1. Maak spellen
+
     // we maken altijd het pacmanspel (om bugs zoveel mogelijk te vangen),
     // maar in de debugmodus maken we het venster niet.
     // hierdoor kunnen we tetris testen zonder ons zorgen te hoeven maken over twee vensters
-    { 
-        int hoogte, breedte;
-        sp->pm_data = pm_maak(pacman_veld, &hoogte, &breedte);
+    int pm_hoogte, pm_breedte;
+    sp->pm_data = pm_maak(pacman_veld, &pm_hoogte, &pm_breedte);
 
-        if (sp->pm_data == NULL) {
-            free(sp);
-            return NULL;
-        }
-
-#if PACMAN
-        sp->pm_win = maak_venster(hoogte, breedte);
-        sp->pm_hoogte = hoogte;
-        sp->pm_breedte = breedte;
-#endif
+    if (sp->pm_data == NULL) {
+        free(sp);
+        return NULL;
     }
 
     // ditto het tetrisspel
-    {
-        int hoogte, breedte;
-        sp->tr_data = tr_maak(&hoogte, &breedte);
-
-        if (sp->tr_data == NULL) {
 #if PACMAN
-            pm_klaar(sp->pm_data);
+    int_callback na_verwijder = {
+        .fn = (int_callback_fn) &pm_verwijderde_regels_cb,
+        .userdata = sp->pm_data,
+    };
+#else
+    int_callback na_verwijder = {
+        .fn = NULL,
+        .userdata = NULL,
+    };
 #endif
-            free(sp);
-            return NULL;
-        }
+
+    int tr_hoogte, tr_breedte;
+    sp->tr_data = tr_maak(na_verwijder, &tr_hoogte, &tr_breedte);
+
+    if (sp->tr_data == NULL) {
+#if PACMAN
+        pm_klaar(sp->pm_data);
+#endif
+        free(sp);
+        return NULL;
+    }
+
+    // 2. Maak vensters
+
+#if PACMAN
+    sp->pm_hoogte = pm_hoogte;
+    sp->pm_breedte = pm_breedte;
+#endif
 
 #if TETRIS
-        sp->tr_win = maak_venster(hoogte, breedte);
-        sp->tr_hoogte = hoogte;
-        sp->tr_breedte = breedte;
+    sp->tr_hoogte = tr_hoogte;
+    sp->tr_breedte = tr_breedte;
 #endif
-    }
+
+    maak_vensters(sp);
 
     return sp;
 }
@@ -204,6 +303,8 @@ toestand speel(spel *sp) {
 #endif
 
     while (1) {
+        zorg_voldoende_maat(sp);
+
         // 1. Reageer op toetsen
         int toets = getch();
         if (toets != ERR) {
@@ -223,15 +324,7 @@ toestand speel(spel *sp) {
                     case 27: // ESC
                         return NEUTRAAL_KLAAR;
                     case KEY_RESIZE:
-#if PACMAN
-                        delwin(sp->pm_win);
-                        sp->pm_win = maak_venster(sp->pm_hoogte, sp->pm_breedte);
-#endif
-#if TETRIS
-                        delwin(sp->tr_win);
-                        sp->tr_win = maak_venster(sp->tr_hoogte, sp->tr_breedte);
-#endif
-                        wis_scherm();
+                        na_resize(sp);
                         break;
                 }
             }

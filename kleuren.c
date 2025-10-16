@@ -19,7 +19,8 @@ void init_kleuren(void) {
         init_pair(K_CLYDE, CK_CLYDE, COLOR_BLACK);
         init_pair(K_PM_VENSTER, CK_PM_VENSTER, COLOR_BLACK);
 
-        init_color(COLOR_BLACK | COLOR_BRIGHT, 100, 100, 100);
+        init_color(CK_TR_ACHTERGROND_ALT, 100, 100, 100);
+        init_pair(K_TR_ACHTERGROND_ALT, CK_TR_ACHTERGROND_ALT, CK_TR_ACHTERGROND_ALT);
 
         int tetromino_kleuren[7][3] = {
             {  789, 1000,  160},
@@ -45,6 +46,7 @@ void init_kleuren(void) {
         init_pair(K_CLYDE, COLOR_GREEN, COLOR_BLACK);
         init_pair(K_PM_VENSTER, COLOR_WHITE, COLOR_BLACK);
 
+        init_pair(K_TR_ACHTERGROND_ALT, COLOR_BLACK | COLOR_BRIGHT, COLOR_BLACK | COLOR_BRIGHT);
         init_pair(K_TETROMINO_0, COLOR_YELLOW, COLOR_YELLOW);
         init_pair(K_TETROMINO_1, COLOR_RED, COLOR_RED);
         init_pair(K_TETROMINO_2, COLOR_GREEN, COLOR_GREEN);
@@ -70,7 +72,6 @@ void init_kleuren(void) {
     init_pair(K_TR_VENSTER, COLOR_WHITE, COLOR_BLACK);
     init_pair(K_TR_MUUR, COLOR_BLUE, COLOR_BLACK);
     init_pair(K_TR_ACHTERGROND, COLOR_BLACK, COLOR_BLACK);
-    init_pair(K_TR_ACHTERGROND_ALT, COLOR_BLACK | COLOR_BRIGHT, COLOR_BLACK | COLOR_BRIGHT);
 }
 
 void wkleur_aan(WINDOW *win, kleur kleur) {

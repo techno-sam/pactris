@@ -18,6 +18,8 @@ typedef struct tetris_data tetris;
 
 /* Maak een tetrisspel
  *
+ * na_verwijder: een (NULLable) callback om aan te roepen nadat regels verwijderd zijn
+ *               (arg is aantal regels)
  * hoogte: een pointer om de gevraagde vensterhoogte in te schrijven
  * breedte: een pointer om de gevraagde vensterhoogte in te schrijven
  *
@@ -26,7 +28,7 @@ typedef struct tetris_data tetris;
  * Side effects:
  * - hoogte en breedte worden gezet
  */
-tetris *tr_maak(int *hoogte, int *breedte);
+tetris *tr_maak(int_callback na_verwijder, int *hoogte, int *breedte);
 
 
 /* Geef alle resources vrij die zijn gealloceerd voor een tetrisspel.

@@ -1,11 +1,17 @@
 /* spel.h
  *
- * Deze module bevat de `toestand` enum.
- * Hiermee geven pacman en tetris aan of het spel door moet gaan.
+ * Deze module bevat types waarmee de sub spellen kunnen communiceren.
+ *
+ * Met de `toestand` enum geven Pacman en Tetris aan of het spel door moet gaan.
+ *
+ * Het callback systeem laat de spellen op elkaar reageren zonder elkaars logica te hoeven kennen.
  */
 
 #ifndef _SPEL_H
 #define _SPEL_H
+
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
 
 typedef enum {
     AAN_HET_SPELEN,
@@ -13,5 +19,12 @@ typedef enum {
     VERLOREN,
     NEUTRAAL_KLAAR
 } toestand;
+
+typedef void (*int_callback_fn)(int arg, void *userdata);
+
+typedef struct {
+    int_callback_fn fn;
+    void *userdata;
+} int_callback;
 
 #endif

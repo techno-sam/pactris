@@ -14,8 +14,6 @@
 
 #define ALLE_RICHTINGEN(var) (richting var = RECHTS; var <= OMHOOG; var++)
 #define SPIEGEL_RICHTING(rot) (rot == GEEN ? GEEN : (rot + 2) % 4)
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
-#define MAX(a, b) ((a) > (b) ? (a) : (b))
 
 // data tabellen, geïndexeerd met een richting
 const int  DX[]         = {   1,   0,  -1,   0 };
@@ -750,4 +748,19 @@ void pm_teken(WINDOW *win, const pacman *data) {
     teken_spook(win, &data->pinky, data->bang_stappen);
     teken_spook(win, &data->inky, data->bang_stappen);
     teken_spook(win, &data->clyde, data->bang_stappen);
+}
+
+void pm_verwijderde_regels_cb(int regels, pacman *data) {
+    // iedere regel telt als een stuk supervoedsel
+    // de speler krijgt een leven terug voor iedere regel boven de 2
+
+    data->bang_stappen += regels * PM_BANG_STAPPEN;
+    data->bang_stappen = MIN(data->bang_stappen, PM_MAX_BANG_STAPPEN);
+
+    for (int i = regels - 2; i > 0; i--) {
+        if (data->levens >= PM_MAX_LEVENS) {
+            break;
+        }
+        data->levens++;
+    }
 }

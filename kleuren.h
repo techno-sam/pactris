@@ -49,6 +49,7 @@ typedef enum {
     CK_TR_TETROMINO_4 = 24,
     CK_TR_TETROMINO_5 = 25,
     CK_TR_TETROMINO_6 = 26,
+    CK_TR_ACHTERGROND_ALT = 27,
 } custom_kleur;
 
 /* Registreer alle nodige kleuren
