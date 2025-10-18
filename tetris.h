@@ -74,4 +74,12 @@ toestand tr_stap(tetris *data);
  */
 void tr_teken(WINDOW *win, const tetris *data);
 
+/* Kijk wat de score is
+ *
+ * data: de speldata
+ *
+ * Uitvoer: de score
+ */
+int tr_score(const tetris *data);
+
 #endif

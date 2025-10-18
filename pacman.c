@@ -764,3 +764,7 @@ void pm_verwijderde_regels_cb(int regels, pacman *data) {
         data->levens++;
     }
 }
+
+int pm_score(const pacman *data) {
+    return data->gegeten_voedsel + data->spook_punten;
+}

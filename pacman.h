@@ -93,4 +93,12 @@ void pm_teken(WINDOW *win, const pacman *data);
  */
 void pm_verwijderde_regels_cb(int regels, pacman *data);
 
+/* Kijk wat de score is
+ *
+ * data: de speldata
+ *
+ * Uitvoer: de score
+ */
+int pm_score(const pacman *data);
+
 #endif

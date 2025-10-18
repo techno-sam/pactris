@@ -76,16 +76,30 @@ void wacht_op_esc(void) {
     while (getch() != 27) {}
 }
 
+int ceil_log10(int v) {
+    int l = 1;
+
+    while (v >= 10) {
+        l++;
+        v /= 10;
+    }
+
+    return l;
+}
+
 /* Teken het win scherm
+ *
+ * score: de score
  *
  * Side effects:
  * - Het win scherm wordt getekend
  */
-void win_scherm(void) {
+void win_scherm(int score) {
     wis_scherm();
 
     char *tekst = "Je hebt gewonnen!!!";
     mvprintw(2, (COLS - strlen(tekst)) / 2, "%s", tekst);
+    mvprintw(3, (COLS - 7 - ceil_log10(score)) / 2, "Score: %d", score);
     refresh();
 
     wacht_op_esc();
@@ -93,14 +107,17 @@ void win_scherm(void) {
 
 /* Teken het verlies scherm
  *
+ * score: de score
+ *
  * Side effects:
  * - Het verlies scherm wordt getekend
  */
-void verlies_scherm(void) {
+void verlies_scherm(int score) {
     wis_scherm();
 
     char *tekst = "Je hebt verloren :(";
     mvprintw(2, (COLS - strlen(tekst)) / 2, "%s", tekst);
+    mvprintw(3, (COLS - 7 - ceil_log10(score)) / 2, "Score: %d", score);
     refresh();
 
     wacht_op_esc();
@@ -342,6 +359,26 @@ toestand speel(spel *sp) {
     }
 }
 
+/* Kijk wat de totale score is van de spellen
+ *
+ * sp: een pointer naar het spel
+ *
+ * Uitvoer: de totale score
+ */
+int spel_score(const spel *sp) {
+    int score = 0;
+
+    if (sp->pm_data) {
+        score += pm_score(sp->pm_data);
+    }
+
+    if (sp->tr_data) {
+        score += tr_score(sp->tr_data);
+    }
+
+    return score;
+}
+
 /* Geef alle resources vrij die zijn gealloceerd voor een spel.
  * De spel pointer is na aanroep van deze functie niet meer bruikbaar.
  *
@@ -424,15 +461,16 @@ int main(int argc, char *argv[]) {
 
     // 6. Speel het spel.
     toestand eindtoestand = speel(spel);
+    int score = spel_score(spel);
     spel_klaar(spel);
 
     // 7. Toon win- of verlies scherm
     switch (eindtoestand) {
         case GEWONNEN:
-            win_scherm();
+            win_scherm(score);
             break;
         case VERLOREN:
-            verlies_scherm();
+            verlies_scherm(score);
             break;
         default:
             break;

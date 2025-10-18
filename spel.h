@@ -33,4 +33,12 @@ typedef struct {
     void *userdata;
 } int_callback;
 
+/* Bereken het aantal cijfers in een getal
+ *
+ * v: het getal
+ *
+ * Uitvoer: het aantal cijfers
+ */
+int ceil_log10(int v);
+
 #endif

@@ -488,14 +488,7 @@ static void teken_volgende_tetromino(WINDOW *win, int type) {
  * - de score wordt op het venster getekend
  */
 static void teken_score(WINDOW *win, int breedte, int score) {
-    int cijfers = 1;
-    int tmp = score;
-    while (tmp > 0) {
-        tmp /= 10;
-        cijfers++;
-    }
-
-    wmove(win, 1, (breedte - 7 - cijfers) / 2);
+    wmove(win, 1, (breedte - 7 - ceil_log10(score)) / 2);
     wprintw(win, "Score: %d", score);
 }
 
@@ -619,4 +612,8 @@ void tr_teken(WINDOW *win, const tetris *data) {
     teken_tetromino(win, &data->tet);
     teken_volgende_tetromino(win, data->volgende_type);
     teken_score(win, data->breedte, data->score);
+}
+
+int tr_score(const tetris *data) {
+    return data->score;
 }
