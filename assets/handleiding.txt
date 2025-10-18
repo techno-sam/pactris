@@ -1,6 +1,95 @@
-Dit bestand is pas van belang voor deel 2 van de opdracht.
+# Pactris
 
-Schrijf hier een korte handleiding voor je spel. Leg uit waar het spel over
-gaat, wat je moet doen en hoe je het moet besturen.
+Een combinatie van Pacman en Tetris, voor twee spelers (of een superheld).
 
-Je mag ook de instructies in je spel zelf opnemen, vermeld dat dan hier even.
+In het geval dat je géén superheld bent, maar toch alleen wil spelen, heeft het spel 3 modi:
+- `./spel allebei assets/pacman.txt`: speel Pacman & Tetris tegelijkertijd
+- `./spel pacman assets/pacman.txt`: speel alleen Pacman
+- `./spel tetris`: speel alleen Tetris
+
+## Spelbeschrijving
+
+### Pacman
+
+Je speelt als Pacman, een reuze hongerige pizzamannetje. Helaas heb je ooit een koude pizza
+aan een gezin bezorgt, en nu zijn hun spoken uit op wraak. Jouw enige kans om te overleven
+is om alle salamiplakjes (`⋅`) op te eten.
+
+Als je een stuk supersalami eet (`*`), worden de spoken allemaal groen van de ziekte en kan
+*jij* 10 seconden lang de *spoken* eten. Dit levert veel punten: het eerste spook dat je in
+een ziekteperiode eet is 200 punten waard, het tweede 400, enzovoort.
+
+### Tetris
+
+Je moet *alweer* overuren werken bij de Jengafabriek. Eigenlijk moet je nog 300 dozen
+vullen, maar het is ongelooflijk saai. Uiteindelijk val je in slaap en je droomt een
+vreemde droom, van eindeloze vallende blokjes in de gekste kleuren. Het enige wat je nog
+weet is dat je zal sterven als de blokjes de top van de doos bereiken. Vreemd genoeg houden
+de blokjes niet van gezelschap: als er op een rij geen vrije ruimte meer is verdwijnt ie.
+
+Uit je ooghoek zie je een pizzamannetje van een stel spoken wegrennen, en opeens weet je dat
+jij ook doodgaat als hij doodgaat. Gelukkig kan je zijn gezondheid herstellen na een
+spookaanval: zorg dat je minstens twee rijen tegelijk verwijdert.
+
+Het schijnt dat droom bazen evenveel van efficiëntie houden als je echte baas: je krijgt
+meer punten als je een blokje van hoger laat vallen.
+
+## Toetsen
+
+### Pacman
+
+| Toets | Beschrijving   |
+|-------|--------------  |
+| W     | ga omhoog      |
+| A     | ga naar links  |
+| S     | ga omlaag      |
+| D     | ga naar rechts |
+
+NB: je kan toetsen van tevoren gebruiken:
+    als je zodra het kan naar rechts wil, kun je meteen `D` indrukken.
+
+### Tetris
+
+| Toets     | Beschrijving        |
+|-----------|---------------------|
+| , of ↓    | draai naar links    |
+| . of ↑    | draai naar rechts   |
+| ←         | beweeg naar links   |
+| →         | beweeg naar rechts  |
+| SHIFT + ← | spring naar links   |
+| SHIFT + → | spring naar rechts  |
+| ↵ (ENTER) | spring naar beneden |
+
+## Configuratie
+
+Als het spel te makkelijk of moeilijk is zijn veel aspecten configureerbaar in `config.h`.
+Let wel op dat je `make clean` of `rm spel` runt voordat je het spel opnieuw compileert,
+want de Makefile weet niet dat header-aanpassingen er toe doen.
+
+### Pacman
+
+Pacman heeft een rechthoekig speelveld nodig. Dit bestaat uit een aantal karakters:
+| Karakter     | Beschrijving                                                   |
+|--------------|----------------------------------------------------------------|
+| ` ` (spatie) | lege ruimte, wordt automatisch vervangen door een salamiplakje |
+| `~`          | lege ruimte, blijft leeg                                       |
+| `*`          | supersalami                                                    |
+| `#`          | muur                                                           |
+| `!`          | startplaats van Pacman                                         |
+| `B`          | startplaats van spook 'Blinky'                                 |
+| `P`          | startplaats van spook 'Pinky'                                  |
+| `I`          | startplaats van spook 'Inky'                                   |
+| `C`          | startplaats van spook 'Clyde'                                  |
+| `+`          | deur van het spookhuis                                         |
+| `-`          | bovenmuur van het spookhuis                                    |
+| `_`          | ondermuur van het spookhuis                                    |
+| `[`          | linkermuur van het spookhuis                                   |
+| `]`          | rechtermuur van het spookhuis                                  |
+| `1`          | linkerbovenhoek van het spookhuis                              |
+| `2`          | rechterbovenhoek van het spookhuis                             |
+| `3`          | linkeronderhoek van het spookhuis                              |
+| `4`          | rechteronderhoek van het spookhuis                             |
+
+Voor het gemak kun je van de linkerbovenkwart van een speelveld een complete speelveld maken
+met `./maak_vol.py pacman_kwart.txt pacman.txt`. Hiermee worden ook het spookhuis en de
+startplaatsen automatisch gemaakt.

@@ -21,7 +21,7 @@ lines += reversed(lines[:-1])
 width = len(lines[0])
 height = len(lines)
 
-def s(x: int, y: int, c: str, relative: bool = True):
+def set_single(x: int, y: int, c: str, relative: bool = True):
     assert len(c) == 1
     if relative:
         x += width // 2
@@ -45,15 +45,15 @@ def set_multi(
         elif c == ignore:
             x += 1
         else:
-            s(x, y, c, relative=relative)
+            set_single(x, y, c, relative=relative)
             x += 1
 
 # HOME
 
-s(0, -2, 'B') # blinky
-s(-1, 0, 'I') # inky
-s(0, 0, 'P') # pinky
-s(1, 0, 'C') # clyde
+set_single(0, -2, 'B') # blinky
+set_single(-1, 0, 'I') # inky
+set_single(0, 0, 'P') # pinky
+set_single(1, 0, 'C') # clyde
 
 set_multi(-2, -1, """
 1-+-2
@@ -62,7 +62,7 @@ set_multi(-2, -1, """
 """.strip(), ignore='~')
 
 # SPAWN
-s(1, 1, '!', relative=False)
+set_single(1, 1, '!', relative=False)
 
 with open(sys.argv[2], "w") as f_out:
     for line in lines:
