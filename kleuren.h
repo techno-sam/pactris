@@ -60,6 +60,24 @@ typedef enum {
  */
 void init_kleuren(void);
 
+/* Zet een tekstkleur aan
+ *
+ * kleur: de kleur
+ *
+ * Side effects:
+ * - de tekstkleur van de terminal wordt aangezet
+ */
+void kleur_aan(kleur kleur);
+
+/* Zet een tekstkleur uit
+ *
+ * kleur: de kleur
+ *
+ * Side effects:
+ * - de tekstkleur van de terminal wordt uitgezet
+ */
+void kleur_uit(kleur kleur);
+
 /* Zet een tekstkleur in een venster aan
  *
  * win: het venster om aam te passen

@@ -48,6 +48,13 @@
 // hoogte van de kuil
 #define TR_HOOGTE 20
 
+// hoeveel punten moet de speler scoren om te winnen
+// (wordt genegeerd in de 'allebei' modus)
+#define TR_WIN_SCORE 1000
+
+// hoeveel punten een verwijderde regel waard is
+#define TR_REGEL_PUNTEN 10
+
 // na hoeveel stukken mag een tetromino herhalen
 #define TR_UNIEK_PERIODE 1
 

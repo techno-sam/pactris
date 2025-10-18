@@ -74,6 +74,14 @@ void init_kleuren(void) {
     init_pair(K_TR_ACHTERGROND, COLOR_BLACK, COLOR_BLACK);
 }
 
+void kleur_aan(kleur kleur) {
+    attron(COLOR_PAIR(kleur));
+}
+
+void kleur_uit(kleur kleur) {
+    attroff(COLOR_PAIR(kleur));
+}
+
 void wkleur_aan(WINDOW *win, kleur kleur) {
     wattron(win, COLOR_PAIR(kleur));
 }

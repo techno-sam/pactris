@@ -66,7 +66,8 @@ const char *TETROMINOS[7][4] = {
     },
 };
 
-const int TETROMINO_VOORBEELD_X[7] = { 0, 0, -1, 1, 1, 1, -1 };
+// de x-offset van tetrominos in het preview venster
+const int TETROMINO_PREVIEW_X[7] = { 0, 0, -1, 1, 1, 1, -1 };
 
 typedef struct {
     int type;
@@ -468,7 +469,7 @@ static void teken_volgende_tetromino(WINDOW *win, int type) {
     teken_doos_om(win, y0, x0, 4, 8, K_TR_VENSTER);
 
     // teken de tetromino
-    int schuiving = TETROMINO_VOORBEELD_X[type];
+    int schuiving = TETROMINO_PREVIEW_X[type];
     for (int y = 0; y < 4; y++) {
         for (int x = 0; x < 4; x++) {
             if (tet_op(&volgende, y, x)) {
@@ -493,8 +494,6 @@ static void teken_score(WINDOW *win, int breedte, int score) {
 }
 
 tetris *tr_maak(int_callback na_verwijder, int *hoogte, int *breedte) {
-    srand(time(NULL));
-
     tetris *data = malloc(sizeof(tetris));
     if (data == NULL) {
         perror("tr_maak");
@@ -592,7 +591,7 @@ toestand tr_stap(tetris *data) {
             data->na_verwijder.fn(verwijderde_regels, data->na_verwijder.userdata);
         }
 
-        data->score += 10 * verwijderde_regels;
+        data->score += TR_REGEL_PUNTEN * verwijderde_regels;
 
         gebruik_volgende_tet(data);
         if (!tet_past((const_kuil_ptr) data->kuil, &data->tet)) {

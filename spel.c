@@ -28,6 +28,47 @@
 #include "tetris.h"
 #include "spel.h"
 
+#define N_VUURWERK 20
+#define VUURWERK_STAPPEN 4
+
+const char *VUURWERK[VUURWERK_STAPPEN][5] = {
+    {
+        "     ",
+        "     ",
+        "  +  ",
+        "     ",
+        "     ",
+    },
+    {
+        "     ",
+        "  +  ",
+        " +#+ ",
+        "  +  ",
+        "     ",
+    },
+    {
+        "  +  ",
+        " ### ",
+        "+# #+",
+        " ### ",
+        "  +  ",
+    },
+    {
+        " ### ",
+        "#   #",
+        "#   #",
+        "#   #",
+        " ### ",
+    },
+};
+
+typedef struct {
+    int y;
+    int x;
+    int leeftijd;
+    kleur kleur;
+} vuurwerk;
+
 typedef struct {
     pacman *pm_data;
     WINDOW *pm_win;
@@ -95,14 +136,62 @@ int ceil_log10(int v) {
  * - Het win scherm wordt getekend
  */
 void win_scherm(int score) {
-    wis_scherm();
+    vuurwerk vw[N_VUURWERK];
 
-    char *tekst = "Je hebt gewonnen!!!";
-    mvprintw(2, (COLS - strlen(tekst)) / 2, "%s", tekst);
-    mvprintw(3, (COLS - 7 - ceil_log10(score)) / 2, "Score: %d", score);
-    refresh();
+    for (int i = 0; i < N_VUURWERK; i++) {
+        vw[i].y = 4 + (rand() % (LINES - 8));
+        vw[i].x = 4 + (rand() % (COLS - 8));
+        vw[i].leeftijd = -(rand() % N_VUURWERK);
+        vw[i].kleur = K_TETROMINO_0 + (rand() % 7);
+    }
 
-    wacht_op_esc();
+    while (1) {
+        char toets = getch();
+        if (toets == 27 || toets == 'q') {
+            break;
+        }
+
+        wis_scherm();
+
+        // teken vuurwerk
+        for (int i = 0; i < N_VUURWERK; i++) {
+            if (vw[i].leeftijd >= 0) {
+                kleur_aan(vw[i].kleur);
+
+                for (int y = 0; y < 5; y++) {
+                    for (int x = 0; x < 5; x++) {
+                        char c = VUURWERK[vw[i].leeftijd][y][x];
+                        if (c != ' ') {
+                            mvaddch(y + vw[i].y - 2, x*2 + vw[i].x - 4, c | A_DIM);
+                            addch(c | A_DIM);
+                        }
+                    }
+                }
+
+                kleur_uit(vw[i].kleur);
+            }
+        }
+
+        // teken score
+        char *tekst = "Je hebt gewonnen!!!";
+        mvprintw(2, (COLS - strlen(tekst)) / 2, "%s", tekst);
+        mvprintw(3, (COLS - 7 - ceil_log10(score)) / 2, "Score: %d", score);
+        refresh();
+
+        // stap vuurwerk
+        for (int i = 0; i < N_VUURWERK; i++) {
+            vw[i].leeftijd++;
+
+            if (vw[i].leeftijd >= VUURWERK_STAPPEN) {
+                vw[i].y = 4 + (rand() % (LINES - 8));
+                vw[i].x = 4 + (rand() % (COLS - 8));
+                vw[i].leeftijd = -(rand() % (N_VUURWERK * 12 / 10)) - 2;
+                vw[i].kleur = K_TETROMINO_0 + (rand() % 7);
+            }
+        }
+
+        napms(125);
+    }
 }
 
 /* Teken het verlies scherm
@@ -293,6 +382,26 @@ void teken_spel(spel *sp) {
     doupdate();
 }
 
+/* Kijk wat de totale score is van de spellen
+ *
+ * sp: een pointer naar het spel
+ *
+ * Uitvoer: de totale score
+ */
+int spel_score(const spel *sp) {
+    int score = 0;
+
+    if (sp->pm_data) {
+        score += pm_score(sp->pm_data);
+    }
+
+    if (sp->tr_data) {
+        score += tr_score(sp->tr_data);
+    }
+
+    return score;
+}
+
 /* Teken, reageer op toetsen, en stap het spel
  *
  * sp: een pointer naar het spel
@@ -354,29 +463,15 @@ toestand speel(spel *sp) {
             }
         }
 
+        if (sp->pm_data == NULL && sp->tr_data != NULL) {
+            if (tr_score(sp->tr_data) >= TR_WIN_SCORE) {
+                return GEWONNEN;
+            }
+        }
+
         // 3. Teken
         teken_spel(sp);
     }
-}
-
-/* Kijk wat de totale score is van de spellen
- *
- * sp: een pointer naar het spel
- *
- * Uitvoer: de totale score
- */
-int spel_score(const spel *sp) {
-    int score = 0;
-
-    if (sp->pm_data) {
-        score += pm_score(sp->pm_data);
-    }
-
-    if (sp->tr_data) {
-        score += tr_score(sp->tr_data);
-    }
-
-    return score;
 }
 
 /* Geef alle resources vrij die zijn gealloceerd voor een spel.
@@ -399,6 +494,8 @@ void spel_klaar(spel *sp) {
 }
 
 int main(int argc, char *argv[]) {
+    srand(time(NULL));
+
     // 1. Controleer dat er een pacmanbestand is opgegeven op de command line.
     if (argc != 2 && argc != 3) {
         fprintf(stderr, "gebruik: %s allebei|pacman|tetris [PACMAN_ROOSTER]\n", argv[0]);
