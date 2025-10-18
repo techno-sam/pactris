@@ -290,7 +290,15 @@ static int plaats_tet(kuil_ptr kuil, const tetromino *tet) {
  */
 static void gebruik_volgende_tet(tetris *data) {
     int volgende = rand() % 7;
-    while (volgende == data->volgende_type || volgende == data->tet.type) {
+    while (
+#if TR_UNIEK_PERIODE >= 1
+        volgende == data->volgende_type ||
+#endif
+#if TR_UNIEK_PERIODE >= 2
+        volgende == data->tet.type ||
+#endif
+        0
+    ) {
         volgende = rand() % 7;
     }
 
@@ -518,9 +526,12 @@ tetris *tr_maak(int_callback na_verwijder, int *hoogte, int *breedte) {
     data->tet.x    = BEGIN_X;
     data->tet.rot  = 0;
 
-    do {
+    data->volgende_type = rand() % 7;
+#if TR_UNIEK_PERIODE > 0
+    while (data->volgende_type == data->tet.type) {
         data->volgende_type = rand() % 7;
-    } while (data->volgende_type == data->tet.type);
+    }
+#endif
 
     data->score = 0;
 

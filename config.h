@@ -48,4 +48,11 @@
 // hoogte van de kuil
 #define TR_HOOGTE 20
 
+// na hoeveel stukken mag een tetromino herhalen
+#define TR_UNIEK_PERIODE 1
+
+#if TR_UNIEK_PERIODE < 0 || TR_UNIEK_PERIODE > 2
+#error "TR_UNIEK_PERIODE moet 0, 1, of 2 zijn"
+#endif
+
 #endif

@@ -752,12 +752,12 @@ void pm_teken(WINDOW *win, const pacman *data) {
 
 void pm_verwijderde_regels_cb(int regels, pacman *data) {
     // iedere regel telt als een stuk supervoedsel
-    // de speler krijgt een leven terug voor iedere regel boven de 2
+    // de speler krijgt een leven terug voor iedere regel na de eerste
 
     data->bang_stappen += regels * PM_BANG_STAPPEN;
     data->bang_stappen = MIN(data->bang_stappen, PM_MAX_BANG_STAPPEN);
 
-    for (int i = regels - 2; i > 0; i--) {
+    for (int i = regels - 1; i > 0; i--) {
         if (data->levens >= PM_MAX_LEVENS) {
             break;
         }
