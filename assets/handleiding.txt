@@ -1,6 +1,4 @@
 # Pactris
-Geschreven door Sam Wagenaar
-
 Een combinatie van Pacman en Tetris, voor twee spelers (of een superheld).
 
 In het geval dat je géén superheld bent, maar toch alleen wil spelen, heeft het spel 3 modi:
@@ -106,3 +104,9 @@ ncurses te liegen, soms helpt dit: `TERM=xterm ./spel ...`
 
 Kijk of er een update is op [techno-sam/pactris](https://github.com/techno-sam/pactris), en
 maak anders een nieuwe issue.
+
+## License
+
+Copyright (c) Sam Wagenaar 2025
+
+Licensed under the [EUPL](LICENSE.txt)
