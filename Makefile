@@ -32,5 +32,5 @@ test: spel
 dragon1: tarball1
 	dragon --on-top --and-exit deel1.tar.gz
 
-dragon2: tarball1
+dragon2: tarball2
 	dragon --on-top --and-exit deel2.tar.gz
