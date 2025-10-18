@@ -1,4 +1,5 @@
 # Pactris
+Geschreven door Sam Wagenaar
 
 Een combinatie van Pacman en Tetris, voor twee spelers (of een superheld).
 
@@ -21,7 +22,7 @@ een ziekteperiode eet is 200 punten waard, het tweede 400, enzovoort.
 
 ### Tetris
 
-Je moet *alweer* overuren werken bij de Jengafabriek. Eigenlijk moet je nog 300 dozen
+Je moet *alweer* overuren maken bij de Jengafabriek. Eigenlijk moet je nog 300 dozen
 vullen, maar het is ongelooflijk saai. Uiteindelijk val je in slaap en je droomt een
 vreemde droom, van eindeloze vallende blokjes in de gekste kleuren. Het enige wat je nog
 weet is dat je zal sterven als de blokjes de top van de doos bereiken. Vreemd genoeg houden
@@ -93,3 +94,15 @@ Pacman heeft een rechthoekig speelveld nodig. Dit bestaat uit een aantal karakte
 Voor het gemak kun je van de linkerbovenkwart van een speelveld een complete speelveld maken
 met `./maak_vol.py pacman_kwart.txt pacman.txt`. Hiermee worden ook het spookhuis en de
 startplaatsen automatisch gemaakt.
+
+## Debughulp
+
+### Tetris is bijna onspeelbaar omdat de kleuren niet kloppen
+
+Zorg dat je een terminal gebruikt die 'fullcolor' ondersteunt. Je kan ook proberen om tegen
+ncurses te liegen, soms helpt dit: `TERM=xterm ./spel ...`
+
+### Er is iets anders kapot
+
+Kijk of er een update is op [techno-sam/pactris](https://github.com/techno-sam/pactris), en
+maak anders een nieuwe issue.
