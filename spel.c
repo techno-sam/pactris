@@ -4,10 +4,14 @@
  * Studie: BSc Informatica
  *
  * spel.c
- * - roep aan met een bestand wat een rechthoekige doolhof heeft
- *   `./spel assets/pacman.txt`
- * - een combinatie van Pacman en Tetris
- * - de speler kan 8 seconden lang spoken eten na een rij te verwijderen in Tetris
+ * - het spel heeft 3 modi: 'allebei', 'pacman', en 'tetris'
+ *   - `./spel allebei assets/pacman.txt`: speel Pacman & Tetris tegelijkertijd
+ *   - `./spel pacman assets/pacman.txt`: speel alleen Pacman
+ *   - `./spel tetris`: speel alleen Tetris
+ * - als het spel te moeilijk of makkelijk is zijn veel aspecten configureerbaar in `config.h`
+ * - een rij verwijderen in Tetris heeft hetzelfde effect als een supervoedsel ('*') te eten in
+ *   Pacman
+ * - zie `assets/handleiding.txt` voor meer informatie
  */
 
 #include <assert.h>

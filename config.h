@@ -18,7 +18,7 @@
 ///////////////////
 
 // stappen/seconde
-#define PM_HERTZ 25 
+#define PM_HERTZ 25
 
 // maximum aantal levens
 #define PM_MAX_LEVENS 5

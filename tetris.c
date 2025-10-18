@@ -104,17 +104,17 @@ static int tet_op(const tetromino *tet, int y, int x) {
 
     /* draai van:
      * +----
-     * |  # 
-     * |    
-     * |    
-     * |    
+     * |..#.
+     * |....
+     * |....
+     * |....
      *
      * naar:
      * +----
-     * |    
-     * |    
-     * |   #
-     * |    
+     * |....
+     * |....
+     * |...#
+     * |....
      */
     for (int i = 0; i < tet->rot; i++) {
         int tmp = x;
@@ -315,7 +315,7 @@ static void gebruik_volgende_tet(tetris *data) {
 /*****************/
 
 /* Teken een doos om een rechthoek heen.
- * 
+ *
  * win: het venster om op te tekenen
  * y0: de y coördinaat van de linkerbovenhoek van de omringde ruimte
  * x0: de x coördinaat van de linkerbovenhoek van de omringde ruimte

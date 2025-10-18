@@ -61,7 +61,7 @@ typedef enum {
 void init_kleuren(void);
 
 /* Zet een tekstkleur in een venster aan
- * 
+ *
  * win: het venster om aam te passen
  * kleur: de kleur
  *
@@ -71,7 +71,7 @@ void init_kleuren(void);
 void wkleur_aan(WINDOW *win, kleur kleur);
 
 /* Zet een tekstkleur in een venster uit
- * 
+ *
  * win: het venster om aam te passen
  * kleur: de kleur
  *

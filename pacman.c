@@ -595,7 +595,7 @@ pacman *pm_maak(rooster *veld, int *hoogte, int *breedte) {
     // 3. Vul het veld met voedsel
     // (het vak waar de speler op begint telt als virtuele voedsel)
     data->begin_voedsel = 1;
-    data->gegeten_voedsel = 1; 
+    data->gegeten_voedsel = 1;
     for (int y = 0; y < data->hoogte; y++) {
         for (int x = 0; x < data->breedte; x++) {
             char c = rooster_kijk(data->veld, x, y);
@@ -677,7 +677,7 @@ toestand pm_stap(pacman *data) {
 
     if (data->bang_stappen >= 0) {
         if (can_change_color()) {
-            int t = data->bang_stappen >= PM_BANG_STAPPEN ? 0 
+            int t = data->bang_stappen >= PM_BANG_STAPPEN ? 0
                 : (PM_BANG_STAPPEN - data->bang_stappen) * 1000 / PM_BANG_STAPPEN;
             init_color(CK_PM_VENSTER, t, 1000, t);
         }
